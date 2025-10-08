@@ -2,7 +2,7 @@
 import { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
-import { Eye, EyeOff, Mail, Lock, ArrowRight, LogIn, Star } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowRight} from "lucide-react";
 import { UserContext } from "../context/UserContext";
 import { toast } from "react-toastify";
 
@@ -18,10 +18,19 @@ export default function Login() {
   const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email);
 
   const saveUserAndNavigate = (user) => {
+    if (user.isBlock) {
+    toast.error("Your account has been blocked");
+    return;
+  }
     setCurrentUser(user);
     localStorage.setItem("currentUser", JSON.stringify(user));
-    toast.success("🎉 Welcome back to ChocoNut!");
-    navigate("/");
+    if (user.isAdmin) {
+      toast.success(`Welcome back ${user.name}`);
+      navigate("/admin"); 
+    } else {
+      toast.success("Welcome back to ChocoNut!");
+      navigate("/"); 
+    }
   };
 
   const handleLogin = async (e) => {
@@ -43,11 +52,11 @@ export default function Login() {
       if (res.data.length > 0) {
         saveUserAndNavigate(res.data[0]);
       } else {
-        setError("❌ Invalid email or password");
+        setError("Invalid email or password");
       }
     } catch (err) {
       console.error(err);
-      setError("😔 Something went wrong! Please try again.");
+      setError("Something went wrong! Please try again.");
     } finally {
       setLoading(false);
     }
@@ -137,7 +146,9 @@ export default function Login() {
           {/* Divider */}
           <div className="flex items-center my-6">
             <div className="flex-1 border-t border-amber-200"></div>
-            <span className="px-3 text-amber-600 text-sm">New to ChocoNut?</span>
+            <span className="px-3 text-amber-600 text-sm">
+              New to ChocoNut?
+            </span>
             <div className="flex-1 border-t border-amber-200"></div>
           </div>
 
@@ -152,7 +163,6 @@ export default function Login() {
             </Link>
           </div>
         </div>
-        
       </div>
     </div>
   );

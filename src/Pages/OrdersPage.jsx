@@ -1,7 +1,6 @@
 // src/pages/OrdersPage.jsx
 import { useContext, useEffect, useState } from "react";
 import { UserContext } from "../context/UserContext";
-import { toast } from "react-toastify";
 import { 
   Package, 
   Truck, 
@@ -14,78 +13,9 @@ import {
 } from "lucide-react";
 
 export default function OrdersPage() {
-  const { currentUser } = useContext(UserContext);
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { currentUser , cancelOrder ,orders } = useContext(UserContext);
+  const [loading, setLoading] = useState(false);
   const [cancellingOrder, setCancellingOrder] = useState(null);
-
-  // Fetch orders from server
-  useEffect(() => {
-    if (!currentUser) return;
-    
-    const fetchOrders = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(`http://localhost:5000/orders?userId=${currentUser.id}`);
-        const data = await res.json();
-        // Sort orders by date (newest first)
-        const sortedOrders = data.sort((a, b) => new Date(b.date) - new Date(a.date));
-        setOrders(sortedOrders);
-      } catch (err) {
-        console.error(err);
-        toast.error("❌ Failed to load orders");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOrders();
-  }, [currentUser]);
-
-  // Cancel order and restore stock
-  const cancelOrder = async (orderId) => {
-    try {
-      setCancellingOrder(orderId);
-      
-      // 1️⃣ Find the order to cancel
-      const orderToCancel = orders.find((o) => o.id === orderId);
-      if (!orderToCancel) return;
-
-      // 2️⃣ Restore stock for each item
-      for (const item of orderToCancel.items) {
-        const res = await fetch(`http://localhost:5000/products/${item.id}`);
-        const product = await res.json();
-        const newStock = (product.stock || 0) + (item.qty || 1);
-
-        await fetch(`http://localhost:5000/products/${item.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ stock: newStock }),
-        });
-      }
-
-      // 3️⃣ Update order status to "Cancelled"
-      await fetch(`http://localhost:5000/orders/${orderId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "Cancelled" }),
-      });
-
-      // 4️⃣ Update state locally
-      setOrders((prev) =>
-        prev.map((o) =>
-          o.id === orderId ? { ...o, status: "Cancelled" } : o
-        )
-      );
-
-      toast.info("⚡ Order cancelled and stock restored!");
-    } catch (err) {
-      console.error(err);
-      toast.error("❌ Failed to cancel order");
-    } finally {
-      setCancellingOrder(null);
-    }
-  };
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -237,12 +167,7 @@ export default function OrdersPage() {
                   <div className="space-y-2">
                     <p className="text-sm text-amber-600">Order Date</p>
                     <p className="font-medium text-amber-900 text-lg">
-                      {new Date(order.date).toLocaleDateString('en-US', { 
-                        weekday: 'long', 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                      })}
+                      {order.createdAt.slice(0,10)}
                     </p>
                   </div>
                   <div className="space-y-2">

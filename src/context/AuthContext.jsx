@@ -22,4 +22,4 @@ export function AuthProvider({ children }){
   );
 };
 
-export const useAuth = () => useContext(AuthContext);   //cutomm hook to call in components simple
+export const useAuth = () => useContext(AuthContext);  

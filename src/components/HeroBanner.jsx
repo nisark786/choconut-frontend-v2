@@ -19,13 +19,12 @@ const features = [
 export default function HeroBanner() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // ✅ Auto play every 4 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       nextSlide();
     }, 5000);
     return () => clearInterval(interval);
-  }, [currentIndex]); // Re-run when currentIndex changes
+  }, [currentIndex]); 
 
   const prevSlide = () => {
     setCurrentIndex((prev) =>

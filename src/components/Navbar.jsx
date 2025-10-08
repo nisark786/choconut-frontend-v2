@@ -17,8 +17,7 @@ import { UserContext } from "../context/UserContext";
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const { currentUser, cart, wishlist, logout } =
-    useContext(UserContext);
+  const { currentUser, cart, wishlist, logout } = useContext(UserContext);
   const navigate = useNavigate();
 
   // Scroll effect
@@ -84,6 +83,15 @@ export default function Navbar() {
                 <Package className="w-4 h-4 group-hover:scale-110 transition-transform" />
                 <span>Orders</span>
               </Link>
+              {currentUser?.isAdmin && (
+                <Link
+                  to="/admin"
+                  className="flex items-center space-x-1 text-gray-700 hover:text-amber-600 font-medium transition-colors duration-200 group"
+                >
+                  <Store className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  <span>Admin</span>
+                </Link>
+              )}
             </div>
 
             {/* Actions */}
@@ -123,7 +131,7 @@ export default function Navbar() {
                       className="flex items-center space-x-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-full font-medium hover:from-amber-600 hover:to-orange-600 transition-all duration-200 shadow-lg hover:shadow-xl"
                     >
                       <User className="w-4 h-4" />
-                      <span>{currentUser.name.split(" ")[0]}</span>
+                      <span>{currentUser.name.toUpperCase().split(" ")[0]}</span>
                     </button>
                     <button
                       onClick={handleLogout}
@@ -189,6 +197,16 @@ export default function Navbar() {
               <Package className="w-5 h-5 text-amber-600" />
               <span className="font-medium">Orders</span>
             </Link>
+            {currentUser?.isAdmin && (
+              <Link
+                to="/admin"
+                className="flex items-center space-x-3 p-3 rounded-lg hover:bg-green-50 text-green-700 transition-colors duration-200"
+                onClick={() => setMenuOpen(false)}
+              >
+                <Store className="w-5 h-5 text-green-600" />
+                <span className="font-medium">Admin</span>
+              </Link>
+            )}
 
             {/* Mobile Actions */}
             <div className="flex space-x-4 pt-4 border-t border-gray-100">
@@ -200,9 +218,7 @@ export default function Navbar() {
                 className="flex-1 flex items-center justify-center space-x-2 p-3 rounded-lg bg-amber-50 text-amber-700 font-medium hover:bg-amber-100 transition-colors"
               >
                 <ShoppingCart className="w-5 h-5" />
-                <span>
-                  Cart {cartCount > 0 && `(${cartCount})`}
-                </span>
+                <span>Cart {cartCount > 0 && `(${cartCount})`}</span>
               </button>
 
               <button

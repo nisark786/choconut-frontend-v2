@@ -12,25 +12,23 @@ import {
 } from "lucide-react";
 
 export default function Shops() {
-  const { currentUser, cart, fetchCart } = useContext(UserContext);
+  const {cart} = useContext(UserContext);
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [premiumFilter, setPremiumFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const productsPerPage = 12;
 
-  // Fetch all products
+  // Fetching products
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios("http://localhost:5000/products");
-        if (!res.ok) throw new Error("Failed to fetch products");
-        const data = await res.json();
-        setProducts(data || []);
+        const res = await axios.get("http://localhost:5000/products");
+        setProducts(res.data || []);
       } catch (err) {
         console.error("Error fetching products:", err);
       }
@@ -39,38 +37,40 @@ export default function Shops() {
   }, []);
 
 
-  // Apply search, filters, and sort (pagination safe)
   useEffect(() => {
     let temp = [...products];
 
-    // Search
-    if (searchQuery.trim()) {
+    // search
+    if (search.trim()) {
       temp = temp.filter((p) =>
         p.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
-    // Category filter
+    
     if (categoryFilter !== "all") {
       temp = temp.filter((p) => p.category === categoryFilter);
     }
 
-    // Premium filter
     if (premiumFilter !== "all") {
       temp = temp.filter((p) =>
         premiumFilter === "premium" ? p.premium === true : p.premium === false
       );
     }
 
-    // Sort by price
     if (sortOrder === "low") temp.sort((a, b) => a.price - b.price);
     if (sortOrder === "high") temp.sort((a, b) => b.price - a.price);
 
     setFilteredProducts(temp);
-    setCurrentPage(1); // reset page only when filters/search/sort change
-  }, [products, searchQuery, categoryFilter, premiumFilter, sortOrder]);
+    setCurrentPage(1);
+  }, [products, search, categoryFilter, premiumFilter, sortOrder]);
 
-  // Adjust stock based on cart items (does NOT reset page)
+
+useEffect(() => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}, [currentPage]);
+
+  
   useEffect(() => {
     if (cart.length) {
       setFilteredProducts((prev) =>
@@ -85,7 +85,7 @@ export default function Shops() {
     }
   }, [cart]);
 
-  // Pagination calculation
+  // Pagination calculations
   const currentProducts = getPageItems(filteredProducts, currentPage, productsPerPage);
   const totalPages = getTotalPages(filteredProducts, productsPerPage);
 
@@ -122,7 +122,7 @@ export default function Shops() {
 
         {/* Search Bar */}
         <div className="mb-8 max-w-2xl mx-auto">
-          <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+          <SearchBar searchQuery={search} setSearchQuery={setSearch} />
         </div>
 
         {/* Filters */}

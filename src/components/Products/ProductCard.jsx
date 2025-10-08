@@ -17,14 +17,14 @@ export default function ProductCard({ product }) {
   const inWishlist = wishlist.some((item) => item.id === product.id);
   const isOutOfStock = product.stock === 0;
 
-  // Navigate to product details page
+  
   const goToDetails = () => {
-    navigate(`/product/${product.id}`); // 👈 Adjust route if different
+    navigate(`/product/${product.id}`); 
   };
 
-  // Handle Cart Add/Remove
+
   const handleCart = async (e) => {
-    e.stopPropagation(); // 👈 Prevents card click
+    e.stopPropagation(); 
     if (!requireLogin(currentUser, navigate)) return;
 
     if (isOutOfStock) {
@@ -48,9 +48,8 @@ export default function ProductCard({ product }) {
     }
   };
 
-  // Handle Wishlist Toggle
   const handleWishlist = async (e) => {
-    e.stopPropagation(); // 👈 Prevents card click
+    e.stopPropagation(); 
     if (!requireLogin(currentUser, navigate)) return;
 
     setActionLoading(true);
@@ -67,7 +66,7 @@ export default function ProductCard({ product }) {
 
   return (
     <div
-      onClick={goToDetails} // 👈 Clicking the card navigates
+      onClick={goToDetails} 
       className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl border border-amber-200 overflow-hidden transition-all duration-300 hover:scale-105 cursor-pointer relative"
     >
       {/* Product Image */}
@@ -102,7 +101,7 @@ export default function ProductCard({ product }) {
       {/* Action Buttons */}
       <div className="flex items-center justify-between space-x-2 p-4">
         <button
-          onClick={handleCart} // 👈 stops card click
+          onClick={handleCart} 
           disabled={isOutOfStock || actionLoading}
           className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 ${
             inCart
@@ -121,7 +120,7 @@ export default function ProductCard({ product }) {
         </button>
 
         <button
-          onClick={handleWishlist} // 👈 stops card click
+          onClick={handleWishlist} 
           disabled={actionLoading}
           className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-200 border-2 ${
             inWishlist

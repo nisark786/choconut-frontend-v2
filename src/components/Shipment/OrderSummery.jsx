@@ -8,8 +8,7 @@ export default function OrderSummary({ paymentMethod, paymentData }) {
   const cart = JSON.parse(localStorage.getItem("checkoutCart") || "[]");
 
   const totalItems = cart.reduce((sum, item) => sum + (item.qty || 1), 0);
-  const subtotal = cart.reduce((sum, item) => sum + item.price * (item.qty || 1), 0);
-  const shipping = 0 ;
+  const subtotal = cart.reduce((sum, item) => sum + item.price * (item.qty || 1), 0);   
   const total = subtotal;
 
  

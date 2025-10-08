@@ -100,7 +100,7 @@ export default function PaymentPage() {
     
     // Simulate payment processing
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+    //   await new Promise(resolve => setTimeout(resolve, 1000));
       navigate("/shipment", { state: { paymentMethod, paymentData } });
     } catch (error) {
       toast.error("Payment processing failed. Please try again.");

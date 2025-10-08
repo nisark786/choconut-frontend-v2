@@ -39,31 +39,37 @@ export default function Signup() {
     }
 
     if (!isStrongPassword(password)) {
-      toast.error("Password must be at least 6 characters with uppercase and lowercase letters");
+      toast.error(
+        "Password must be at least 6 characters with uppercase and lowercase letters"
+      );
       setLoading(false);
       return;
     }
 
     try {
-      // Check if email already exists
-      const existing = await axios.get(`${API_URL}/users`, { params: { email } });
+      // email eist
+      const existing = await axios.get(`${API_URL}/users`, {
+        params: { email },
+      });
       if (existing.data.length > 0) {
         toast.error("User already exists with this email");
         setLoading(false);
         return;
       }
 
-      // 1. Create new user
-      const newUser = { name, email, password };
+      // create new user
+const newUser = {
+  name,
+  email,
+  password,
+  isAdmin: false,
+  isBlock: false,
+  joinDate: new Date().toISOString() 
+};
       const res = await axios.post(`${API_URL}/users`, newUser);
-      const savedUser = res.data; // includes auto-generated id
+      const savedUser = res.data; 
 
-      // 2. Create empty cart & wishlist for that user
-      await axios.post(`${API_URL}/carts`, { userId: savedUser.id, items: [] });
-      await axios.post(`${API_URL}/wishlists`, { userId: savedUser.id, items: [] });
-
-      // 3. Save user in context + navigate
-      saveUserAndNavigate(savedUser);
+        saveUserAndNavigate(savedUser);
     } catch (err) {
       console.error(err);
       toast.error("Something went wrong! Please try again.");
@@ -85,8 +91,12 @@ export default function Signup() {
               Choco<span className="text-amber-500">Nut</span>
             </h1>
           </div>
-          <h2 className="text-2xl font-bold text-amber-900 mb-2">Create Your Account</h2>
-          <p className="text-amber-700">Join us for sweet deals and delicious treats!</p>
+          <h2 className="text-2xl font-bold text-amber-900 mb-2">
+            Create Your Account
+          </h2>
+          <p className="text-amber-700">
+            Join us for sweet deals and delicious treats!
+          </p>
         </div>
 
         {/* Signup Form */}
@@ -94,7 +104,9 @@ export default function Signup() {
           <form onSubmit={handleSignup} className="space-y-5">
             {/* Name Field */}
             <div>
-              <label className="block text-sm font-medium text-amber-900 mb-2">Full Name</label>
+              <label className="block text-sm font-medium text-amber-900 mb-2">
+                Full Name
+              </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-amber-400" />
                 <input
@@ -110,7 +122,9 @@ export default function Signup() {
 
             {/* Email Field */}
             <div>
-              <label className="block text-sm font-medium text-amber-900 mb-2">Email Address</label>
+              <label className="block text-sm font-medium text-amber-900 mb-2">
+                Email Address
+              </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-amber-400" />
                 <input
@@ -126,7 +140,9 @@ export default function Signup() {
 
             {/* Password Field */}
             <div>
-              <label className="block text-sm font-medium text-amber-900 mb-2">Password</label>
+              <label className="block text-sm font-medium text-amber-900 mb-2">
+                Password
+              </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-amber-400" />
                 <input
@@ -174,7 +190,9 @@ export default function Signup() {
           {/* Divider */}
           <div className="flex items-center my-6">
             <div className="flex-1 border-t border-amber-200"></div>
-            <span className="px-3 text-amber-600 text-sm">Already have an account?</span>
+            <span className="px-3 text-amber-600 text-sm">
+              Already have an account?
+            </span>
             <div className="flex-1 border-t border-amber-200"></div>
           </div>
 

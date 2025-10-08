@@ -1,0 +1,55 @@
+import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from "recharts";
+
+export default function OrderStatusChart({ orders }) {
+  // Count orders by status
+  const statusCounts = orders.reduce((acc, order) => {
+    acc[order.status] = (acc[order.status] || 0) + 1;
+    return acc;
+  }, {});
+
+  // Convert counts to chart-friendly format
+  const chartData = Object.keys(statusCounts).map((status) => ({
+    name: status,
+    value: statusCounts[status],
+  }));
+
+  // Colors for each status
+  const COLORS = {
+    Delivered: "#22c55e",  
+    Processing: "#3b82f6",  
+    Cancelled: "#FF0000", 
+    Shipped: "#eab308",     
+  };
+
+  return (
+    <div className="w-full h-96 bg-white rounded-xl shadow p-6">
+      <h2 className="text-lg font-semibold text-gray-800 mb-4">
+        Order Status Overview
+      </h2>
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie
+            data={chartData}
+            cx="50%"
+            cy="50%"
+            labelLine={false}
+            label={({ name, percent }) =>
+              `${name}: ${(percent * 100).toFixed(0)}%`
+            }
+            outerRadius={120}
+            fill="#8884d8"
+            dataKey="value"
+          >
+            {chartData.map((entry) => (
+              <Cell
+                key={`cell-${entry.name}`}
+                fill={COLORS[entry.name] || "#94a3b8"}
+              />
+            ))}
+          </Pie>
+          <Tooltip />
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}

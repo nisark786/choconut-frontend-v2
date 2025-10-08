@@ -7,110 +7,54 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function Cart() {
-  const { currentUser, updateCartQty, removeFromCart, setCurrentUser } =
-    useContext(UserContext);
+  const { currentUser, updateCartQty, removeFromCart ,cart} = useContext(UserContext);
   const navigate = useNavigate();
   const [loadingIds, setLoadingIds] = useState([]);
-  const [cart, setCart] = useState([]);
-
-  // ------------------ Fetch cart ------------------
-  useEffect(() => {
-    if (!currentUser) return;
-
-    fetch(`http://localhost:5000/carts/${currentUser.id}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Cart not found");
-        return res.json();
-      })
-      .then((data) => setCart(data.items || []))
-      .catch(() => toast.error("❌ Failed to load cart"));
-  }, [currentUser]);
+ 
 
   const startLoading = (id) => setLoadingIds((prev) => [...prev, id]);
   const stopLoading = (id) =>
     setLoadingIds((prev) => prev.filter((i) => i !== id));
 
-  // ------------------ Quantity increase ------------------
-  const increaseQty = async (item) => {
-    if (item.qty >= item.stock) {
-      toast.error(`❌ Only ${item.stock} items in stock!`);
-      return;
-    }
+const increaseQty = async (item) => {
+  if (item.qty >= item.stock) {
+    toast.error(`Only ${item.stock} items in stock!`);
+    return;
+  }
+  startLoading(item.id);
+  try {
+    await updateCartQty(item.id, item.qty + 1);
+    toast.success("Quantity increased!");
+  } catch {
+    toast.error("Failed to update quantity");
+  }
+  stopLoading(item.id);
+};
 
-    startLoading(item.id);
-    const updatedQty = item.qty + 1;
+const decreaseQty = async (item) => {
+  if (item.qty <= 1) return removeCartItem(item.id);
 
-    try {
-      await fetch(`http://localhost:5000/carts/${currentUser.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: cart.map((i) =>
-            i.id === item.id ? { ...i, qty: updatedQty } : i
-          ),
-        }),
-      });
+  startLoading(item.id);
+  try {
+    await updateCartQty(item.id, item.qty - 1);
+    toast.info("Quantity decreased!");
+  } catch {
+    toast.error("Failed to update quantity");
+  }
+  stopLoading(item.id);
+};
 
-      setCart((prev) =>
-        prev.map((i) => (i.id === item.id ? { ...i, qty: updatedQty } : i))
-      );
-      updateCartQty(item.id, updatedQty);
-      toast.success("✅ Quantity increased!");
-    } catch {
-      toast.error("❌ Failed to update quantity");
-    }
-    stopLoading(item.id);
-  };
-
-  // ------------------ Quantity decrease ------------------
-  const decreaseQty = async (item) => {
-    if (item.qty <= 1) return removeCartItem(item.id);
-
-    startLoading(item.id);
-    const updatedQty = item.qty - 1;
-
-    try {
-      await fetch(`http://localhost:5000/carts/${currentUser.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: cart.map((i) =>
-            i.id === item.id ? { ...i, qty: updatedQty } : i
-          ),
-        }),
-      });
-
-      setCart((prev) =>
-        prev.map((i) => (i.id === item.id ? { ...i, qty: updatedQty } : i))
-      );
-      updateCartQty(item.id, updatedQty);
-      toast.info("⚡ Quantity decreased!");
-    } catch {
-      toast.error("❌ Failed to update quantity");
-    }
-    stopLoading(item.id);
-  };
-
-  // ------------------ Remove item ------------------
-  const removeCartItem = async (id) => {
-    startLoading(id);
-    try {
-      const newItems = cart.filter((i) => i.id !== id);
-
-      await fetch(`http://localhost:5000/carts/${currentUser.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: newItems }),
-      });
-
-      setCart(newItems);
-      removeFromCart(id);
-      toast.info("🛒 Item removed from cart!");
-    } catch {
-      toast.error("❌ Failed to remove item");
-    }
-    stopLoading(id);
-  };
+// Remove Item
+const removeCartItem = async (id) => {
+  startLoading(id);
+  try {
+    await removeFromCart(id);
+    toast.info("Item removed from cart!");
+  } catch {
+    toast.error("Failed to remove item");
+  }
+  stopLoading(id);
+};
 
   // ------------------ Proceed to Payment ------------------
   const handleCheckout = () => {

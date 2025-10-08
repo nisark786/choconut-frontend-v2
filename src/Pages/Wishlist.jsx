@@ -7,28 +7,9 @@ import { Heart, ShoppingCart, Trash2, ArrowRight, LogIn, Search } from "lucide-r
 import "react-toastify/dist/ReactToastify.css";
 
 export default function Wishlist() {
-  const { currentUser, addToCart, toggleWishlist } = useContext(UserContext);
+  const { currentUser, addToCart, toggleWishlist ,wishlist ,setWishlist } = useContext(UserContext);
   const navigate = useNavigate();
   const [loadingIds, setLoadingIds] = useState([]);
-  const [wishlist, setWishlist] = useState([]);
-
-  // ---------------- Fetch wishlist ----------------
-  useEffect(() => {
-    if (!currentUser) return;
-
-    const fetchWishlist = async () => {
-      try {
-        const res = await fetch(`http://localhost:5000/wishlists/${currentUser.id}`);
-        const data = await res.json();
-        setWishlist(data.items || []);
-      } catch (err) {
-        toast.error("Failed to load wishlist");
-        console.error(err);
-      }
-    };
-
-    fetchWishlist();
-  }, [currentUser]);
 
   if (!currentUser) {
     return (
@@ -51,7 +32,7 @@ export default function Wishlist() {
     );
   }
 
-  // ---------------- Remove from wishlist ----------------
+
   const handleRemove = async (product) => {
     setLoadingIds((prev) => [...prev, product.id]);
     try {
@@ -66,14 +47,13 @@ export default function Wishlist() {
     }
   };
 
-  // ---------------- Add to cart & remove from wishlist ----------------
   const handleAddToCart = async (product) => {
     setLoadingIds((prev) => [...prev, product.id]);
     try {
       await addToCart(product);
       await toggleWishlist(product);
       setWishlist((prev) => prev.filter((item) => item.id !== product.id));
-      toast.success("🛒 Added to cart and removed from wishlist!");
+      toast.success("Added to cart and removed from wishlist!");
     } catch (err) {
       toast.error("Failed to add to cart.");
       console.error(err);

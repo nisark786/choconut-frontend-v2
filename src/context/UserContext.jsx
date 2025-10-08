@@ -15,6 +15,21 @@ export function UserProvider({ children }) {
   const [wishlist, setWishlist] = useState([]);
   const [orders, setOrders] = useState([]);
 
+  useEffect(() => {
+  const fetchCurrentUser = async () => {
+    if (!currentUser) return;
+    try {
+      const res = await axios.get(`${API_URL}/users/${currentUser.id}`);
+      setCurrentUser(res.data); // update local state and localStorage
+    } catch (err) {
+      console.error("Fetch current user error:", err);
+    }
+  };
+
+  fetchCurrentUser();
+}, []);
+
+
   // ---------------- SYNC LOCAL STORAGE ----------------
   useEffect(() => {
     if (currentUser) {
@@ -25,10 +40,9 @@ export function UserProvider({ children }) {
     }
   }, [currentUser]);
 
-  // ---------------- INIT USER DATA ----------------
   const initUserData = async (userId) => {
     try {
-      // CART
+      
       try {
         const cartRes = await axios.get(`${API_URL}/carts/${userId}`);
         setCart(cartRes.data.items || []);
@@ -39,7 +53,7 @@ export function UserProvider({ children }) {
         } else throw err;
       }
 
-      // WISHLIST
+    
       try {
         const wishRes = await axios.get(`${API_URL}/wishlists/${userId}`);
         setWishlist(wishRes.data.items || []);
@@ -50,7 +64,7 @@ export function UserProvider({ children }) {
         } else throw err;
       }
 
-      // ORDERS
+      
       const orderRes = await axios.get(`${API_URL}/orders?userId=${userId}`);
       setOrders(orderRes.data || []);
     } catch (err) {
@@ -58,7 +72,8 @@ export function UserProvider({ children }) {
     }
   };
 
-  // ---------------- LOGOUT ----------------
+  // logout user
+
   const logout = () => {
     setCurrentUser(null);
     setCart([]);
@@ -67,7 +82,7 @@ export function UserProvider({ children }) {
     localStorage.removeItem("currentUser");
   };
 
-  // ---------------- CART ----------------
+  // setcart
   const fetchCart = async () => {
     if (!currentUser) return;
     try {
@@ -78,6 +93,7 @@ export function UserProvider({ children }) {
     }
   };
 
+  // addtocart
   const addToCart = async (product) => {
     if (!currentUser) return;
     const exists = cart.some((i) => i.id === product.id);
@@ -90,21 +106,15 @@ export function UserProvider({ children }) {
     }
   };
 
+  //remove from cart
  const removeFromCart = async (productId) => {
   if (!currentUser) return;
 
   try {
-    // Get current cart
     const res = await axios.get(`${API_URL}/carts/${currentUser.id}`);
     const cartData = res.data;
-
-    // Filter out product
     const newCart = (cartData.items || []).filter((item) => item.id !== productId);
-
-    // Update server
     await axios.patch(`${API_URL}/carts/${currentUser.id}`, { items: newCart });
-
-    // Update local state
     setCart(newCart);
   } catch (err) {
     console.error("Error removing item from cart:", err);
@@ -124,7 +134,7 @@ export function UserProvider({ children }) {
     }
   };
 
-  // ---------------- WISHLIST ----------------
+  // fethwishlist
   const fetchWishlist = async () => {
     if (!currentUser) return;
     try {
@@ -150,16 +160,18 @@ export function UserProvider({ children }) {
     }
   };
 
-  // ---------------- ORDERS ----------------
-  const fetchOrders = async () => {
-    if (!currentUser) return;
-    try {
-      const res = await axios.get(`${API_URL}/orders?userId=${currentUser.id}`);
-      setOrders(res.data || []);
-    } catch (err) {
-      console.error("Fetch orders error:", err);
-    }
-  };
+  // fetch orfers
+ const fetchOrders = async () => {
+  if (!currentUser) return;
+  try {
+    const res = await axios.get(`${API_URL}/orders?userId=${currentUser.id}`);
+    const sorted = res.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    setOrders(sorted || []);
+  } catch (err) {
+    console.error("Fetch orders error:", err);
+  }
+};
+
 
 
 const addOrder = async (order) => {
@@ -169,15 +181,15 @@ const addOrder = async (order) => {
     userId: currentUser.id,
     items: order.items,
     total: order.total,
-    status: "placed",
+    status: "Processing",
     createdAt: new Date().toISOString(),
   };
 
   try {
-    // 1. Save the order
+    //  Save order
     await axios.post(`${API_URL}/orders`, newOrder);
 
-    // 2. Update product stock
+    // Update product stock
     for (const item of order.items) {
       // Fetch current product
       const res = await axios.get(`${API_URL}/products/${item.id}`);
@@ -186,7 +198,7 @@ const addOrder = async (order) => {
       // Calculate new stock
       const updatedStock = Math.max(product.stock - item.qty, 0);
 
-      // Update product stock in DB
+      // Update product stock in bd.json
       await axios.patch(`${API_URL}/products/${item.id}`, { stock: updatedStock });
     }
 
@@ -203,10 +215,10 @@ const addOrder = async (order) => {
 
   const cancelOrder = async (orderId) => {
     try {
-      await axios.patch(`${API_URL}/orders/${orderId}`, { status: "cancelled" });
+      await axios.patch(`${API_URL}/orders/${orderId}`, { status: "Cancelled" });
       setOrders((prev) =>
         prev.map((o) =>
-          o.id === orderId ? { ...o, status: "cancelled" } : o
+          o.id === orderId ? { ...o, status: "Cancelled" } : o
         )
       );
     } catch (err) {

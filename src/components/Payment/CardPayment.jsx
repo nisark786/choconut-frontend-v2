@@ -1,15 +1,21 @@
 // src/components/Payment/CardPayment.jsx
-import { useState } from "react";
+import axios from "axios";
+import { useState, useContext } from "react";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 import { CreditCard, User, Lock, Calendar, CheckCircle } from "lucide-react";
+import { UserContext } from "../../context/UserContext";
 
 export default function CardPayment({ setPaymentData }) {
+  const navigate = useNavigate();
+  const {currentUser} = useContext(UserContext)
   const [name, setName] = useState("");
   const [cardNumber, setCardNumber] = useState("");
   const [expiry, setExpiry] = useState("");
   const [cvv, setCvv] = useState("");
   const [error, setError] = useState("");
   const [isSaved, setIsSaved] = useState(false);
+  const userId = currentUser.id;
 
   const handleCardNumberChange = (e) => {
     let value = e.target.value.replace(/\D/g, "");
@@ -35,14 +41,17 @@ export default function CardPayment({ setPaymentData }) {
     const cardDigits = cardNumber.replace(/\s/g, "");
     const expiryRegex = /^(\d{2})\/(\d{2})$/;
     const match = expiry.match(expiryRegex);
-    const [month, year] = match ? [parseInt(match[1], 10), parseInt(match[2], 10)] : [null, null];
+    const [month, year] = match
+      ? [parseInt(match[1], 10), parseInt(match[2], 10)]
+      : [null, null];
     const currentYear = new Date().getFullYear() % 100;
     const currentMonth = new Date().getMonth() + 1;
 
     if (!name.trim()) return "Cardholder name is required";
     if (cardDigits.length !== 16) return "Card number must be 16 digits";
     if (!match || month < 1 || month > 12) return "Invalid expiry date";
-    if (year < currentYear || (year === currentYear && month < currentMonth)) return "Card is expired";
+    if (year < currentYear || (year === currentYear && month < currentMonth))
+      return "Card is expired";
     if (cvv.length < 3 || cvv.length > 4) return "CVV must be 3 or 4 digits";
 
     return "";
@@ -57,27 +66,27 @@ export default function CardPayment({ setPaymentData }) {
     }
 
     setError("");
-    const paymentInfo = { 
-      method: "card", 
-      name, 
-      cardNumber: cardNumber.replace(/\s/g, ""), 
-      expiry, 
-      cvv 
+    const paymentInfo = {
+      id: userId,
+      data: {
+        method: "card",
+        name,
+        cardNumber: cardNumber.replace(/\s/g, ""),
+        expiry,
+        cvv,
+      },
     };
     setPaymentData(paymentInfo);
 
     try {
-      const res = await fetch("http://localhost:5000/payments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(paymentInfo),
-      });
+      // ✅ Axios POST instead of fetch
+      await axios.post("http://localhost:5000/payments", paymentInfo);
 
-      if (!res.ok) throw new Error("Failed to save payment");
-      
       setIsSaved(true);
-      toast.success("💳 Payment information saved successfully!");
-      
+      toast.success("Payment information saved successfully!");
+
+      navigate("/shipment");
+
       // Reset form after successful save
       setTimeout(() => {
         setName("");
@@ -86,9 +95,9 @@ export default function CardPayment({ setPaymentData }) {
         setCvv("");
         setIsSaved(false);
       }, 2000);
-      
-    } catch {
-      toast.error("❌ Failed to save payment information!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to save payment information!");
     }
   };
 
@@ -100,7 +109,9 @@ export default function CardPayment({ setPaymentData }) {
           <CreditCard className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h3 className="text-xl font-bold text-amber-900">Credit/Debit Card</h3>
+          <h3 className="text-xl font-bold text-amber-900">
+            Credit/Debit Card
+          </h3>
           <p className="text-amber-600">Secure payment with SSL encryption</p>
         </div>
       </div>
@@ -110,8 +121,12 @@ export default function CardPayment({ setPaymentData }) {
         <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center space-x-3">
           <CheckCircle className="w-6 h-6 text-green-500" />
           <div>
-            <p className="font-semibold text-green-800">Payment Method Saved!</p>
-            <p className="text-green-700 text-sm">Your card details have been securely stored</p>
+            <p className="font-semibold text-green-800">
+              Payment Method Saved!
+            </p>
+            <p className="text-green-700 text-sm">
+              Your card details have been securely stored
+            </p>
           </div>
         </div>
       )}
@@ -204,7 +219,9 @@ export default function CardPayment({ setPaymentData }) {
         <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
           <div className="flex items-center space-x-2 text-amber-700">
             <Lock className="w-4 h-4" />
-            <span className="text-sm font-medium">Your payment details are secure</span>
+            <span className="text-sm font-medium">
+              Your payment details are secure
+            </span>
           </div>
           <p className="text-xs text-amber-600 mt-1">
             We use industry-standard encryption to protect your information
@@ -235,7 +252,7 @@ export default function CardPayment({ setPaymentData }) {
       <div className="mt-6 pt-4 border-t border-amber-200">
         <p className="text-sm text-amber-600 mb-3">We accept:</p>
         <div className="flex space-x-3">
-          {['Visa', 'MasterCard', 'Amex', 'RuPay'].map((card) => (
+          {["Visa", "MasterCard", "Amex", "RuPay"].map((card) => (
             <div key={card} className="bg-amber-100 rounded-lg px-3 py-2">
               <span className="text-xs font-medium text-amber-700">{card}</span>
             </div>

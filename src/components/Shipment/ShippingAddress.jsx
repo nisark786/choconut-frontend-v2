@@ -60,7 +60,7 @@ export default function ShippingAddress({ paymentMethod, paymentData }) {
         paymentData,
       };
 
-      // Create order safely
+    //   Create order safely
       await addOrder(orderData);
 
       localStorage.removeItem("checkoutCart");

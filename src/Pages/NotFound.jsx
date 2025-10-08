@@ -1,6 +1,6 @@
 // src/pages/NotFound.jsx
 import { Link } from "react-router-dom";
-import { Home, ShoppingBag, ArrowLeft, Search } from "lucide-react";
+import { Home, ShoppingBag, Search } from "lucide-react";
 
 export default function NotFound() {
   return (
