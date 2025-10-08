@@ -38,7 +38,7 @@ useEffect(() => {
   const fetchProduct = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`http://localhost:5000/products/${id}`);
+      const res = await axios.get(`https://choco-nut-server.onrender.com/products/${id}`);
       setProduct(res.data);
     } catch (error) {
       console.error("Error fetching product:", error);
@@ -111,7 +111,7 @@ useEffect(() => {
         date: new Date().toISOString().split('T')[0],
       };
 
-      const res = await axios.post("http://localhost:5000/reviews", reviewData);
+      const res = await axios.post("https://choco-nut-server.onrender.com/reviews", reviewData);
 
       if (res.status) {
         toast.success("Review submitted successfully!");

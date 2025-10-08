@@ -17,7 +17,7 @@ export default function PremiumProducts() {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const res = await axios.get("http://localhost:5000/products", {
+        const res = await axios.get("https://choco-nut-server.onrender.com/products", {
           signal: controller.signal,
         });
 

@@ -16,7 +16,7 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const API_URL = "http://localhost:5000";
+  const API_URL = "https://choco-nut-server.onrender.com";
 
   const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email);
   const isStrongPassword = (pass) => /^(?=.*[a-z])(?=.*[A-Z]).{6,}$/.test(pass);

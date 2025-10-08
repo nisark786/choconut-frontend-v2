@@ -45,7 +45,7 @@ export default function Login() {
     }
 
     try {
-      const res = await axios.get("http://localhost:5000/users", {
+      const res = await axios.get("https://choco-nut-server.onrender.com/users", {
         params: { email, password },
       });
 

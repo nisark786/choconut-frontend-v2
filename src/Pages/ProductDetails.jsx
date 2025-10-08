@@ -42,7 +42,7 @@ export default function ProductDetails() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/products/${id}`);
+        const res = await axios.get(`https://choco-nut-server.onrender.com/products/${id}`);
         setProduct(res.data);
       } catch (err) {
         console.error(err);
@@ -56,7 +56,7 @@ export default function ProductDetails() {
     const fetchReviews = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:5000/reviews?productId=${id}`
+          `https://choco-nut-server.onrender.com/reviews?productId=${id}`
         );
         setReviews(res.data); // axios response data is here
       } catch (error) {

@@ -80,7 +80,7 @@ export default function CardPayment({ setPaymentData }) {
 
     try {
       // ✅ Axios POST instead of fetch
-      await axios.post("http://localhost:5000/payments", paymentInfo);
+      await axios.post("https://choco-nut-server.onrender.com/payments", paymentInfo);
 
       setIsSaved(true);
       toast.success("Payment information saved successfully!");

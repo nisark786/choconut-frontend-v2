@@ -3,7 +3,7 @@ import { createContext, useState, useEffect } from "react";
 import axios from "axios";
 
 export const UserContext = createContext();
-const API_URL = "http://localhost:5000";
+const API_URL = "https://choco-nut-server.onrender.com";
 
 
 export function UserProvider({ children }) {

@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 
 export const AdminContext = createContext();
 export default function AdminProvider({ children }) {
-  const API_URL = "http://localhost:5000";
+  const API_URL = "https://choco-nut-server.onrender.com";
 
   const [users, setUsers] = useState([]);
   const [products, setProducts] = useState([]);

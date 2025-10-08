@@ -95,7 +95,7 @@ export default function ChangePassword() {
 
     try {
       setLoading(true)
-      const updateRes = await axios.patch(`http://localhost:5000/users/${currentUser.id}`, {
+      const updateRes = await axios.patch(`https://choco-nut-server.onrender.com/users/${currentUser.id}`, {
     password: formData.newPassword,
   });
 

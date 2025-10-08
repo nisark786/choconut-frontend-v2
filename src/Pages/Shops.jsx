@@ -27,7 +27,7 @@ export default function Shops() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/products");
+        const res = await axios.get("https://choco-nut-server.onrender.com/products");
         setProducts(res.data || []);
       } catch (err) {
         console.error("Error fetching products:", err);
