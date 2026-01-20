@@ -28,7 +28,8 @@ export default function Navbar() {
   }, []);
 
   // Live counts
-  const cartCount = cart.length;
+  const cartCount = cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+
   const wishlistCount = wishlist.length;
 
   const handleLogout = () => {
@@ -83,7 +84,7 @@ export default function Navbar() {
                 <Package className="w-4 h-4 group-hover:scale-110 transition-transform" />
                 <span>Orders</span>
               </Link>
-              {currentUser?.isAdmin && (
+              {currentUser?.is_staff && (
                 <Link
                   to="/admin"
                   className="flex items-center space-x-1 text-gray-700 hover:text-amber-600 font-medium transition-colors duration-200 group"
@@ -131,7 +132,9 @@ export default function Navbar() {
                       className="flex items-center space-x-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-full font-medium hover:from-amber-600 hover:to-orange-600 transition-all duration-200 shadow-lg hover:shadow-xl"
                     >
                       <User className="w-4 h-4" />
-                      <span>{currentUser.name.toUpperCase().split(" ")[0]}</span>
+                      <span>
+                        {currentUser.name.toUpperCase().split(" ")[0]}
+                      </span>
                     </button>
                     <button
                       onClick={handleLogout}

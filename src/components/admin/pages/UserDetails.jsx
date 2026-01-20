@@ -1,8 +1,9 @@
 // src/pages/admin/UserDetails.jsx
 import { useParams, useNavigate } from "react-router-dom";
 import { AdminContext } from "../../../context/AdminContext";
-import { useContext } from "react";
-import { 
+import { useContext, useEffect, useState } from "react";
+import api from "../../../api/axios";
+import {
   ArrowLeft,
   Mail,
   Phone,
@@ -15,28 +16,87 @@ import {
 } from "lucide-react";
 
 export default function UserDetails() {
+  const [user, setUser] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
   const { id } = useParams();
   const navigate = useNavigate();
-  const { users, orders ,blockUser ,accessAdmin} = useContext(AdminContext);
+  const { userAction } = useContext(AdminContext);
 
-  const user = users.find(u => u.id === id);
-  const userOrders = orders.filter(order => order.userId === user?.id);
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await api.get(`admin/users/${id}/`);
+        setUser(res.data.user);
+        setStats(res.data.stats);
+        setOrders(res.data.orders);
+      } catch (err) {
+        console.error("Failed to load user", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, [id]);
+
+  const handleUserAction = async (action) => {
+    if (actionLoading) return;
+    setActionLoading(true);
+    try {
+      await userAction(user.id, action);
+
+      setUser((prev) => ({
+        ...prev,
+        is_blocked:
+          action === "block"
+            ? true
+            : action === "unblock"
+              ? false
+              : prev.is_blocked,
+        is_staff:
+          action === "make_admin"
+            ? true
+            : action === "remove_admin"
+              ? false
+              : prev.is_staff,
+      }));
+    } catch (err) {
+      console.error("Action failed", err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-600">Loading user details...</p>
+      </div>
+    );
+  }
 
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-4xl mx-auto px-4">
           <button
-            onClick={() => navigate("/admin/customers")}
+            onClick={() => navigate("/admin/users")}
             className="flex items-center space-x-2 text-amber-600 hover:text-amber-700 font-medium mb-6 group"
           >
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-            <span>Back to Customers</span>
+            <span>Back to Users</span>
           </button>
           <div className="bg-white rounded-2xl shadow-lg border border-amber-200 p-8 text-center">
             <User className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">User Not Found</h2>
-            <p className="text-gray-600">The user you're looking for doesn't exist.</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              User Not Found
+            </h2>
+            <p className="text-gray-600">
+              The user you're looking for doesn't exist.
+            </p>
           </div>
         </div>
       </div>
@@ -47,14 +107,7 @@ export default function UserDetails() {
     isBlocked ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800";
   const getStatusText = (isBlocked) => (isBlocked ? "Blocked" : "Active");
 
-  const userStats = {
-    totalOrders: userOrders.length,
-    totalSpent: userOrders.reduce((sum, order) => sum + (order.total || 0), 0),
-    averageOrder: userOrders.length > 0 ? 
-      userOrders.reduce((sum, order) => sum + (order.total || 0), 0) / userOrders.length : 0,
-    lastOrder: userOrders.length > 0 ? 
-      new Date(Math.max(...userOrders.map(o => new Date(o.createdAt)))) : null
-  };
+  const userStats = stats;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -75,8 +128,12 @@ export default function UserDetails() {
                 <User className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">User Details</h1>
-                <p className="text-amber-700">Comprehensive user information and activity</p>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  User Details
+                </h1>
+                <p className="text-amber-700">
+                  Comprehensive user information and activity
+                </p>
               </div>
             </div>
           </div>
@@ -98,9 +155,15 @@ export default function UserDetails() {
                   <div>
                     <h2 className="text-2xl font-bold">{user.name}</h2>
                     <p className="text-amber-100 opacity-90">{user.email}</p>
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-2 ${getStatusColor(user.isBlock)}`}>
-                      {user.isBlock ? <XCircle className="w-4 h-4 mr-1" /> : <CheckCircle className="w-4 h-4 mr-1" />}
-                      {getStatusText(user.isBlock)}
+                    <span
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-2 ${getStatusColor(user.is_blocked)}`}
+                    >
+                      {user.is_blocked ? (
+                        <XCircle className="w-4 h-4 mr-1" />
+                      ) : (
+                        <CheckCircle className="w-4 h-4 mr-1" />
+                      )}
+                      {getStatusText(user.is_blocked)}
                     </span>
                   </div>
                 </div>
@@ -120,19 +183,27 @@ export default function UserDetails() {
                     <Shield className="w-5 h-5 text-amber-600" />
                     <div>
                       <p className="text-sm text-gray-600">Role</p>
-                      <p className="font-medium text-gray-900">{user.isAdmin ? "Admin" : "User"}</p>
+                      <p className="font-medium text-gray-900">
+                        {user.is_staff ? "Admin" : "User"}
+                      </p>
                     </div>
                   </div>
-                   <button onClick={()=>blockUser(user.id ,user.isBlock)} className={`w-full flex items-center space-x-3 p-3 rounded-xl transition-colors ${
-                  user.isBlock 
-                    ? "bg-blue-500 text-white hover:bg-blue-600" 
-                    : "bg-red-500 text-white hover:bg-red-600"
-                }`}>
-                  <Shield className="w-5 h-5" />
-                  <span className="font-medium">
-                    {user.isBlock ? "Unblock User" : "Block User"}
-                  </span>
-                </button>
+                  <button
+                    disabled={actionLoading}
+                    onClick={() =>
+                      handleUserAction(user.is_blocked ? "unblock" : "block")
+                    }
+                    className={`w-full flex items-center space-x-3 p-3 rounded-xl transition-colors ${
+                      user.is_blocked
+                        ? "bg-blue-500 text-white hover:bg-blue-600"
+                        : "bg-red-500 text-white hover:bg-red-600"
+                    }`}
+                  >
+                    <Shield className="w-5 h-5" />
+                    <span className="font-medium">
+                      {user.is_blocked ? "Unblock User" : "Block User"}
+                    </span>
+                  </button>
                 </div>
                 <div className="space-y-4">
                   <div className="flex items-center space-x-3">
@@ -140,11 +211,16 @@ export default function UserDetails() {
                     <div>
                       <p className="text-sm text-gray-600">Member Since</p>
                       <p className="font-medium text-gray-900">
-                        {user.joinDate ? new Date(user.joinDate).toLocaleDateString('en-US', { 
-                          year: 'numeric', 
-                          month: 'long', 
-                          day: 'numeric' 
-                        }) : "N/A"}
+                        {user.date_joined
+                          ? new Date(user.date_joined).toLocaleDateString(
+                              "en-US",
+                              {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                              },
+                            )
+                          : "N/A"}
                       </p>
                     </div>
                   </div>
@@ -152,20 +228,29 @@ export default function UserDetails() {
                     <Shield className="w-5 h-5 text-amber-600" />
                     <div>
                       <p className="text-sm text-gray-600">User ID</p>
-                      <p className="font-mono text-sm text-gray-900">{user.id}</p>
+                      <p className="font-mono text-sm text-gray-900">
+                        {user.id}
+                      </p>
                     </div>
-                    
                   </div>
-                  <button onClick={()=>accessAdmin(user.id ,user.isAdmin)} className={`w-full flex items-center space-x-3 p-3 rounded-xl transition-colors ${
-                  user.isAdmin 
-                    ? "bg-green-500 text-white hover:bg-green-600" 
-                    : "bg-orange-500 text-white hover:bg-orange-600"
-                }`}>
-                  <Shield className="w-5 h-5" />
-                  <span className="font-medium">
-                    {user.isAdmin ? "Demote Admin" : "Promote User"}
-                  </span>
-                </button>
+                  <button
+                    disabled={actionLoading}
+                    onClick={() =>
+                      handleUserAction(
+                        user.is_staff ? "remove_admin" : "make_admin",
+                      )
+                    }
+                    className={`w-full flex items-center space-x-3 p-3 rounded-xl transition-colors ${
+                      user.is_staff
+                        ? "bg-green-500 text-white hover:bg-green-600"
+                        : "bg-orange-500 text-white hover:bg-orange-600"
+                    }`}
+                  >
+                    <Shield className="w-5 h-5" />
+                    <span className="font-medium">
+                      {user.is_staff ? "Demote Admin" : "Promote User"}
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -174,23 +259,31 @@ export default function UserDetails() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="bg-white p-4 rounded-2xl border border-gray-200 text-center">
                 <p className="text-sm text-gray-600">Total Orders</p>
-                <p className="text-2xl font-bold text-gray-900">{userStats.totalOrders}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {userStats?.total_orders}
+                </p>
                 <div className="w-full h-2 bg-blue-500 rounded-full mt-2"></div>
               </div>
               <div className="bg-white p-4 rounded-2xl border border-gray-200 text-center">
                 <p className="text-sm text-gray-600">Total Spent</p>
-                <p className="text-2xl font-bold text-green-600">₹{userStats.totalSpent.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-green-600">
+                  ₹{userStats?.total_spent?.toLocaleString()}
+                </p>
                 <div className="w-full h-2 bg-green-500 rounded-full mt-2"></div>
               </div>
               <div className="bg-white p-4 rounded-2xl border border-gray-200 text-center">
                 <p className="text-sm text-gray-600">Avg. Order</p>
-                <p className="text-2xl font-bold text-amber-600">₹{userStats.averageOrder.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-amber-600">
+                  ₹{userStats?.average_order?.toLocaleString()}
+                </p>
                 <div className="w-full h-2 bg-amber-500 rounded-full mt-2"></div>
               </div>
               <div className="bg-white p-4 rounded-2xl border border-gray-200 text-center">
                 <p className="text-sm text-gray-600">Last Order</p>
                 <p className="text-lg font-bold text-gray-900">
-                  {userStats.lastOrder ? userStats.lastOrder.toLocaleDateString() : "No Orders"}
+                  {userStats?.last_order
+                    ? new Date(userStats.last_order).toLocaleDateString()
+                    : "No Orders"}
                 </p>
                 <div className="w-full h-2 bg-purple-500 rounded-full mt-2"></div>
               </div>
@@ -205,9 +298,9 @@ export default function UserDetails() {
                 </h3>
               </div>
 
-              {userOrders.length > 0 ? (
+              {orders.length > 0 ? (
                 <div className="space-y-4">
-                  {userOrders.slice(0, 10).map((order) => (
+                  {orders.slice(0, 10).map((order) => (
                     <div
                       key={order.id}
                       className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors"
@@ -219,26 +312,35 @@ export default function UserDetails() {
                         <div>
                           <p className="font-bold text-gray-900">{order.id}</p>
                           <p className="text-sm text-gray-600">
-                            {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "Date unknown"}
+                            {order.created_at
+                              ? new Date(order.created_at).toLocaleDateString()
+                              : "Date unknown"}
                           </p>
                         </div>
                       </div>
-                      {order.items.map(item => `${item.name} x ${item.qty} unit`).join(", ")}
+                      {order.items
+                        .map(
+                          (item) =>
+                            `${item.product_name} x ${item.quantity} unit`,
+                        )
+                        .join(", ")}
 
                       <div className="text-right">
-                        <p className="font-bold text-gray-900">₹{order.total?.toLocaleString() || "0"}</p>
+                        <p className="font-bold text-gray-900">
+                          ₹{order.total_amount?.toLocaleString() || "0"}
+                        </p>
                         <span
                           className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                            order.status === "Delivered"
+                            order.order_status === "DELIVERED"
                               ? "bg-green-100 text-green-800"
-                              : order.status === "Shipped"
-                              ? "bg-amber-100 text-amber-800"
-                              : order.status === "Processing"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-red-100 text-red-800"
+                              : order.order_status === "SHIPPED"
+                                ? "bg-amber-100 text-amber-800"
+                                : order.order_status === "PROCESSING"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : "bg-red-100 text-red-800"
                           }`}
                         >
-                          {order.status || "Unknown"}
+                          {order.order_status || "Unknown"}
                         </span>
                       </div>
                     </div>
@@ -247,13 +349,16 @@ export default function UserDetails() {
               ) : (
                 <div className="text-center py-12">
                   <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-600 text-lg">No orders found for this user</p>
-                  <p className="text-gray-500 text-sm mt-1">This user hasn't placed any orders yet.</p>
+                  <p className="text-gray-600 text-lg">
+                    No orders found for this user
+                  </p>
+                  <p className="text-gray-500 text-sm mt-1">
+                    This user hasn't placed any orders yet.
+                  </p>
                 </div>
               )}
             </div>
           </div>
-
         </div>
       </div>
     </div>

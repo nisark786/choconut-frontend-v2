@@ -17,60 +17,71 @@ import {
   Store,
 } from "lucide-react";
 import "react-toastify/dist/ReactToastify.css";
+import api from "../api/axios";
 
 export default function ProductDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const {
-    addToCart,
-    removeFromCart,
-    toggleWishlist,
-    cart,
-    wishlist,
-  } = useContext(UserContext);
+  const { addToCart, removeFromCart, toggleWishlist, cart, wishlist } =
+    useContext(UserContext);
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [reviews, setReviews] = useState([]);
+  const [reviewMeta, setReviewMeta] = useState({
+    count: 0,
+    next: null,
+    previous: null,
+  });
   const [activeTab, setActiveTab] = useState("description");
-  const inCart = cart.some((item) => item.id === product?.id);
-  const inWishlist = wishlist?.some((item) => item.id === product?.id);
+
+  const cartProductIds = new Set(cart?.items?.map((i) => i.product.id) || []);
+  const inCart = product ? cartProductIds.has(product.id) : false;
+  const inWishlist = product
+    ? wishlist?.some((item) => item.id === product.id)
+    : false;
   const isOutOfStock = product?.stock === 0;
-  
-  
+  console.log(product)
+
   useEffect(() => {
     const fetchProduct = async () => {
+      setLoading(true);
       try {
-        const res = await axios.get(`https://choco-nut-server.onrender.com/products/${id}`);
-        setProduct(res.data);
+        const productRes = await api.get(`/products/${id}/`);
+        const reviewRes = await api.get(`/products/${id}/reviews/`);
+        setProduct(productRes.data);
+        setReviews(reviewRes.data.results);
+        setReviewMeta({
+          count: reviewRes.data.count,
+          next: reviewRes.data.next,
+          previous: reviewRes.data.previous,
+        });
       } catch (err) {
-        console.error(err);
+        console.error("Failed to fetch product:", err);
+        toast.error("Failed to load product");
+      } finally {
         setLoading(false);
       }
     };
+
     fetchProduct();
   }, [id]);
-  
-  useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        const res = await axios.get(
-          `https://choco-nut-server.onrender.com/reviews?productId=${id}`
-        );
-        setReviews(res.data); // axios response data is here
-      } catch (error) {
-        console.error("Error fetching reviews:", error);
-        setReviews([]);
-      }
-    };
 
-    fetchReviews();
-  }, [id]);
+  const loadMoreReviews = async () => {
+    if (!reviewMeta.next) return;
 
-  // Calculate average rating
-  const averageRating =
-    reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length;
+    const res = await api.get(reviewMeta.next);
+    setReviews((prev) => [...prev, ...res.data.results]);
+    setReviewMeta({
+      count: res.data.count,
+      next: res.data.next,
+      previous: res.data.previous,
+    });
+  };
+
+  const averageRating = product?.rating_avg ?? 0;
+
 
   // Rating distribution
   const ratingDistribution = {
@@ -81,7 +92,6 @@ export default function ProductDetails() {
     1: reviews.filter((review) => review.rating === 1).length,
   };
 
-  
   const renderStars = (rating) => {
     return (
       <div className="flex">
@@ -161,10 +171,10 @@ export default function ProductDetails() {
                 className="h-96 object-contain"
               />
               {isOutOfStock && (
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white font-bold text-lg">
-            Out of Stock
-          </div>
-        )}
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white font-bold text-lg">
+                  Out of Stock
+                </div>
+              )}
             </div>
           </div>
 
@@ -185,7 +195,7 @@ export default function ProductDetails() {
                 <Star className="w-4 h-4 text-amber-500 fill-amber-500 ml-1" />
               </div>
               <span className="text-amber-700 font-medium">
-                {reviews.length} Ratings
+                {product.rating_count} Ratings
               </span>
               <span className="text-gray-300">|</span>
               <span className="text-green-600 font-medium">1k+ Bought</span>
@@ -300,9 +310,9 @@ export default function ProductDetails() {
             {/* Action Buttons - matching navbar buttons */}
             <div className="flex space-x-4 pt-2">
               <button
-              disabled={isOutOfStock}
+                disabled={isOutOfStock}
                 onClick={() => {
-                  inCart ? removeFromCart(product.id) : addToCart(product);
+                  inCart ? removeFromCart(product.id) : addToCart(product.id);
                 }}
                 className={`flex-1 text-white py-4 px-6 rounded-xl font-bold text-lg transition-all duration-200 shadow-lg flex items-center justify-center disabled:opacity-50
     ${
@@ -315,18 +325,14 @@ export default function ProductDetails() {
                 {inCart ? "Remove" : "Add To Cart"}
               </button>
               <button
-                className="flex-1 bg-white border-2 border-amber-500 text-amber-600 hover:bg-amber-50 py-4 px-6 rounded-xl font-bold text-lg transition-all duration-200 shadow-sm hover:shadow-md"
-                onClick={() => {
-                  addToCart(product);
-                  navigate("/payment");
-                }}
+                onClick={() =>
+                  navigate(`/product/${id}/review`, { state: { product } })
+                }
+                className="w-60 flex items-center justify-center space-x-2 py-3 px-6 border-2 border-amber-500 text-amber-600 rounded-xl font-bold hover:bg-amber-50 transition-colors"
               >
-                Buy Now
+                <Star className="w-5 h-5" />
+                <span>Write a Review</span>
               </button>
-            </div>
-
-            {/* Wishlist & Share */}
-            <div className="flex space-x-6 pt-4">
               <button
                 onClick={() => {
                   toggleWishlist(product);
@@ -340,15 +346,12 @@ export default function ProductDetails() {
                 />
                 {inWishlist ? "Remove From" : "Add To"} Wishlist
               </button>
-              <button
-                onClick={() =>
-                  navigate(`/product/${id}/review`, { state: { product } })
-                }
-                className="w-60 flex items-center justify-center space-x-2 py-3 px-6 border-2 border-amber-500 text-amber-600 rounded-xl font-bold hover:bg-amber-50 transition-colors"
-              >
-                <Star className="w-5 h-5" />
-                <span>Write a Review</span>
-              </button>
+            </div>
+
+            {/* Wishlist & Share */}
+            <div className="flex space-x-6 pt-4">
+              
+              
             </div>
           </div>
         </div>
@@ -457,7 +460,7 @@ export default function ProductDetails() {
                           {averageRating.toFixed(1)}
                         </div>
                         <div>
-                          {renderStars(averageRating)}
+                          {renderStars(Math.round(averageRating))}
                           <p className="text-gray-600 mt-2">
                             {reviews.length} Reviews
                           </p>
@@ -532,6 +535,11 @@ export default function ProductDetails() {
                         ))}
                       </div>
                     </div>
+                    {reviewMeta.next && (
+                      <button onClick={loadMoreReviews}>
+                        Load more reviews
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-12">

@@ -3,7 +3,7 @@ import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from "recha
 export default function OrderStatusChart({ orders }) {
   // Count orders by status
   const statusCounts = orders.reduce((acc, order) => {
-    acc[order.status] = (acc[order.status] || 0) + 1;
+    acc[order.order_status] = (acc[order.order_status] || 0) + 1;
     return acc;
   }, {});
 
@@ -15,10 +15,10 @@ export default function OrderStatusChart({ orders }) {
 
   // Colors for each status
   const COLORS = {
-    Delivered: "#22c55e",  
-    Processing: "#3b82f6",  
-    Cancelled: "#FF0000", 
-    Shipped: "#eab308",     
+    DELIVERED: "#22c55e",  
+    PROCESSING: "#3b82f6",  
+    CANCELLED: "#FF0000", 
+    SHIPPED: "#eab308",     
   };
 
   return (

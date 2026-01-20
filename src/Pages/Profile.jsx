@@ -117,7 +117,7 @@ export default function Profile() {
                 <div className="flex justify-between items-center p-2 hover:bg-amber-50 rounded-lg transition-colors">
                   <span className="text-amber-700">Orders Placed</span>
                   <span className="bg-amber-100 text-amber-800 px-2 py-1 rounded-full text-sm font-medium">
-                    {orders.length}
+                    {/* {orders.length} */}
                   </span>
                 </div>
                 <div className="flex justify-between items-center p-2 hover:bg-amber-50 rounded-lg transition-colors">

@@ -1,77 +1,74 @@
 // src/components/admin/sections/OrdersManagement.jsx
-import { useContext, useState } from "react";
-import {
-  Search,
-  Download,
-  Edit,
-  Truck,
-  Package,
-} from "lucide-react";
+import { useContext, useState, useEffect } from "react";
+import { Search, Download, Edit, Truck, Package } from "lucide-react";
 import DataTable from "../DataTable";
 import { AdminContext } from "../../../context/AdminContext";
-
 
 export default function OrdersManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const { orders, getUserName ,handleSaveStatus ,setEditingOrderId ,setUpdatedStatus ,editingOrderId ,updatedStatus} = useContext(AdminContext);
-
- const filteredOrders = orders.filter((order) => {
-  const search = searchTerm.toLowerCase();
-
-  return (
-    order.id.toLowerCase().includes(search) ||            
-    order.userId.toLowerCase().includes(search) ||           
-    getUserName(order.userId)?.toLowerCase().includes(search) || 
-    order.status.toLowerCase().includes(search) ||         
-    order.total?.toString().includes(search)          
-  ) && (statusFilter === "all" || order.status === statusFilter);
-});
-
-  const statusCounts = orders.reduce((acc, order) => {
-    const status = order.status;
-    acc[status] = (acc[status] || 0) + 1;
-    return acc;
-  }, {});
+  const {
+    orders,
+    fetchOrders,
+    handleSaveStatus,
+    setEditingOrderId,
+    setUpdatedStatus,
+    editingOrderId,
+    updatedStatus,
+    orderStats,
+    orderPagination,
+  } = useContext(AdminContext);
 
   const getStatusColor = (status) => {
     const colors = {
-      Delivered: "bg-green-100 text-green-800",
-      Cancelled: "bg-red-100 text-red-800",
-      Shipped: "bg-amber-100 text-amber-800",
-      Pending: "bg-gray-100 text-gray-800",
+      DELIVERED: "bg-green-100 text-green-800",
+      CANCELLED: "bg-red-100 text-red-800",
+      SHIPPED: "bg-amber-100 text-amber-800",
+      PROCESSING: "bg-gray-100 text-gray-800",
     };
     return colors[status] || "bg-gray-100 text-gray-800";
   };
 
   const handleEditClick = (order) => {
     setEditingOrderId(order.id);
-    setUpdatedStatus(order.status);
+    setUpdatedStatus(order.order_status);
   };
 
   const stats = [
     {
       label: "Cancelled",
-      value: statusCounts["Cancelled"] || 0,
+      value: orderStats.CANCELLED || 0,
       color: "bg-red-500",
     },
     {
       label: "Processing",
-      value: statusCounts["Processing"] || 0,
+      value: orderStats.PROCESSING || 0,
       color: "bg-blue-500",
     },
     {
       label: "Shipped",
-      value: statusCounts["Shipped"] || 0,
+      value: orderStats.SHIPPED || 0,
       color: "bg-amber-500",
     },
     {
       label: "Delivered",
-      value: statusCounts["Delivered"] || 0,
+      value: orderStats.DELIVERED || 0,
       color: "bg-green-500",
     },
   ];
+
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      fetchOrders({
+        page: 1,
+        search: searchTerm,
+        status: statusFilter,
+      });
+    }, 400);
+
+    return () => clearTimeout(delay);
+  }, [searchTerm, statusFilter]);
 
   return (
     <div className="space-y-6">
@@ -119,10 +116,10 @@ export default function OrdersManagement() {
                 className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors"
               >
                 <option value="all">All Status</option>
-                <option value="Cancelled">Cancelled</option>
-                <option value="Processing">Processing</option>
-                <option value="Shipped">Shipped</option>
-                <option value="Delivered">Delivered</option>
+                <option value="CANCELLED">Cancelled</option>
+                <option value="PROCESSING">Processing</option>
+                <option value="SHIPPED">Shipped</option>
+                <option value="DELIVERED">Delivered</option>
               </select>
             </div>
           </div>
@@ -138,7 +135,7 @@ export default function OrdersManagement() {
               "Date",
               "Actions",
             ]}
-            data={filteredOrders}
+            data={orders}
             emptyMessage="No orders found"
             renderRow={(order) => (
               <tr
@@ -149,12 +146,10 @@ export default function OrdersManagement() {
                   {order.id}
                 </td>
                 <td className="py-3 px-4">
-                  <p className="font-medium text-gray-900">
-                    {getUserName(order.userId)}
-                  </p>
+                  <p className="font-medium text-gray-900">{order.user_name}</p>
                 </td>
                 <td className="py-3 px-4 font-medium text-gray-900">
-                  {order.total?.toLocaleString()}
+                  {order.total_amount?.toLocaleString()}
                 </td>
                 <td className="py-3 px-4">
                   <p className="font-medium text-gray-900">
@@ -169,31 +164,37 @@ export default function OrdersManagement() {
                       onChange={(e) => setUpdatedStatus(e.target.value)}
                       className="border border-gray-300 rounded-lg px-2 py-1 text-sm"
                     >
-                      <option value="Pending">Pending</option>
-                      <option value="Processing">Processing</option>
-                      <option value="Shipped">Shipped</option>
-                      <option value="Delivered">Delivered</option>
-                      <option value="Cancelled">Cancelled</option>
+                      <option value="PROCESSING">Processing</option>
+                      <option value="SHIPPED">Shipped</option>
+                      <option value="DELIVERED">Delivered</option>
+                      <option value="CANCELLED">Cancelled</option>
                     </select>
                   ) : (
                     <span
                       className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                        order.status
+                        order.order_status,
                       )}`}
                     >
-                      {order.status}
+                      {order.order_status}
                     </span>
                   )}
                 </td>
                 <td className="py-3 px-4 text-gray-600">
-                  {order.createdAt.slice(0, 10)}
+                  {order.created_at.slice(0, 10)}
                 </td>
                 <td className="py-3 px-4">
                   <div className="flex items-center space-x-2">
                     {editingOrderId === order.id ? (
                       <>
                         <button
-                          onClick={() => handleSaveStatus(order.id)}
+                          onClick={() =>
+                            handleSaveStatus({
+                              orderId: order.id,
+                              page: orderPagination.page,
+                              search: searchTerm,
+                              status: statusFilter,
+                            })
+                          }
                           className="p-1 text-green-600 hover:text-green-700"
                           title="Save"
                         >
@@ -223,6 +224,39 @@ export default function OrdersManagement() {
               </tr>
             )}
           />
+          <div className="flex justify-between items-center mt-4">
+            <button
+              disabled={!orderPagination.previous}
+              onClick={() =>
+                fetchOrders({
+                  page: orderPagination.page - 1,
+                  search: searchTerm,
+                  status: statusFilter,
+                })
+              }
+              className="px-4 py-2 bg-gray-100 rounded disabled:opacity-50"
+            >
+              Previous
+            </button>
+
+            <span className="text-sm text-gray-600">
+              Page {orderPagination.page}
+            </span>
+
+            <button
+              disabled={!orderPagination.next}
+              onClick={() =>
+                fetchOrders({
+                  page: orderPagination.page + 1,
+                  search: searchTerm,
+                  status: statusFilter,
+                })
+              }
+              className="px-4 py-2 bg-gray-100 rounded disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
     </div>

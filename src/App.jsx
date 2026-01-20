@@ -7,8 +7,8 @@ import Cart from "./Pages/Cart";
 import Wishlist from "./Pages/Wishlist";
 import Profile from "./Pages/Profile";
 import OrderConfirmation from "./Pages/OrderConfirmation";
-import ShipmentPage from "./components/Shipment/ShipmentPage";
-import PaymentPage from "./components/Payment/PaymentPage";
+import ShipmentPage from "./Pages/ShipmentPage";
+import PaymentPage from "./Pages/PaymentPage";
 import ProtectedRoute from "./components/ProtectedRoutes";
 import SignUp from "./Pages/SignUp";
 import { ToastContainer } from "react-toastify";
@@ -29,9 +29,11 @@ import AddProduct from "./components/admin/pages/AddProduct";
 import EditProduct from "./components/admin/pages/EditProduct";
 import UsersManagement from "./components/admin/sections/UsersManagement";
 import UserDetails from "./components/admin/pages/UserDetails";
-
+import VerifyOTP from "./Pages/OTPVerify";
 
 function App() {
+  
+
   return (
     <Router>
       <ScrollToTop />
@@ -56,6 +58,10 @@ function App() {
             <Route path="/signup" element={<SignUp />} />
             <Route path="/product/:id" element={<ProductDetails />} />
             <Route path="/shops" element={<Shops />} />
+            <Route path="/verify-otp" element={<VerifyOTP />} />
+
+
+
 
 
           <Route
@@ -125,7 +131,7 @@ function App() {
             }
           />
           <Route
-            path="/confirmation"
+            path="/confirmation/:orderId"
             element={
               <ProtectedRoute>
                 <OrderConfirmation />

@@ -5,6 +5,7 @@ import { Crown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import api from "../../api/axios";
 
 export default function PremiumProducts() {
   const [products, setProducts] = useState([]);
@@ -17,29 +18,22 @@ export default function PremiumProducts() {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const res = await axios.get("https://choco-nut-server.onrender.com/products", {
-          signal: controller.signal,
-        });
+        const res = await api.get("products/premium/");
 
-        const premiumProducts = res.data.filter(
+        const productsArray = res.data.results || res.data;
+
+        const premiumProducts = productsArray.filter(
           (product) => product.premium === true
         );
         setProducts(premiumProducts);
       } catch (err) {
-        if (axios.isCancel(err)) {
-          console.log("Request canceled:", err.message);
-        } else {
-          console.error("Error fetching premium products:", err);
           toast.error("Failed to load premium products");
-        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchProducts();
-
-    return () => controller.abort();
   }, []);
 
   

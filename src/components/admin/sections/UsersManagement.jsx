@@ -5,15 +5,9 @@ import { useNavigate } from "react-router-dom";
 import {
   Eye,
   Search,
-  Filter,
   Mail,
-  Phone,
   Calendar,
-  User,
   ShoppingBag,
-  X,
-  Download,
-  Shield,
   CheckCircle,
   XCircle,
 } from "lucide-react";
@@ -21,56 +15,33 @@ import DataTable from "../DataTable";
 
 export default function UsersManagement() {
   const navigate = useNavigate();
-  const { users, orders ,blockUser } = useContext(AdminContext);
+  const { users, userAction, userStats, fetchUsers, userPagination } =
+    useContext(AdminContext);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [userStats, setUserStats] = useState({
-    total: 0,
-    active: 0,
-    blocked: 0,
-    newThisMonth: 0,
-  });
 
   useEffect(() => {
-    if (users.length > 0) {
-      const stats = {
-        total: users.length,
-        active: users.filter((user) => !user.isBlock).length,
-        blocked: users.filter((user) => user.isBlock).length,
-        newThisMonth: users.filter((user) => {
-          const joinDate = new Date(user.joinDate);
-          const currentMonth = new Date();
-          return (
-            joinDate.getMonth() === currentMonth.getMonth() &&
-            joinDate.getFullYear() === currentMonth.getFullYear()
-          );
-        }).length,
-      };
-      setUserStats(stats);
-    }
-  }, [users]);
+    const delay = setTimeout(() => {
+      fetchUsers({
+        search: searchTerm,
+        status: statusFilter,
+        page: 1,
+      });
+    }, 400);
 
-  const filteredUsers = users
-    .filter(
-      (user) =>
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .filter(
-      (user) =>
-        statusFilter === "all" ||
-        (statusFilter === "active" && !user.isBlock) ||
-        (statusFilter === "blocked" && user.isBlock)
-    );
+    return () => clearTimeout(delay);
+  }, [searchTerm, statusFilter]);
 
-  const getStatusColor = (isBlocked) => {
-    return isBlocked
-      ? "bg-red-100 text-red-800"
-      : "bg-green-100 text-green-800";
+  const getStatusText = (user) => {
+    if (user.is_blocked) return "Blocked";
+    if (!user.is_active) return "Inactive";
+    return "Active";
   };
 
-  const getStatusText = (isBlocked) => {
-    return isBlocked ? "Blocked" : "Active";
+  const getStatusColor = (user) => {
+    if (user.is_blocked) return "bg-red-100 text-red-800";
+    if (!user.is_active) return "bg-yellow-100 text-yellow-800";
+    return "bg-green-100 text-green-800";
   };
 
   return (
@@ -87,7 +58,7 @@ export default function UsersManagement() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="bg-white p-4 rounded-2xl border border-gray-200">
           <p className="text-sm text-gray-600">Total Users</p>
           <p className="text-2xl font-bold text-gray-900">{userStats.total}</p>
@@ -99,6 +70,13 @@ export default function UsersManagement() {
             {userStats.active}
           </p>
           <div className="w-full h-2 bg-green-500 rounded-full mt-2"></div>
+        </div>
+        <div className="bg-white p-4 rounded-2xl border border-gray-200">
+          <p className="text-sm text-gray-600">InActive Users</p>
+          <p className="text-2xl font-bold text-amber-700">
+            {userStats.notVerified}
+          </p>
+          <div className="w-full h-2 bg-amber-700 rounded-full mt-2"></div>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-gray-200">
           <p className="text-sm text-gray-600">Blocked Users</p>
@@ -136,6 +114,7 @@ export default function UsersManagement() {
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
+              <option value="inactive">InActive</option>
               <option value="blocked">Blocked</option>
             </select>
           </div>
@@ -144,7 +123,7 @@ export default function UsersManagement() {
         {/* Users Table */}
         <DataTable
           headers={["User", "Contact", "Status", "Joined", "Orders", "Actions"]}
-          data={filteredUsers}
+          data={users}
           emptyMessage="No users found"
           renderRow={(user) => (
             <tr
@@ -170,34 +149,28 @@ export default function UsersManagement() {
                     <Mail className="w-3 h-3 text-gray-400" />
                     <span className="text-gray-600">{user.email}</span>
                   </div>
-                  {user.phone && (
-                    <div className="flex items-center space-x-2 text-sm">
-                      <Phone className="w-3 h-3 text-gray-400" />
-                      <span className="text-gray-600">{user.phone}</span>
-                    </div>
-                  )}
                 </div>
               </td>
               <td className="py-3 px-4">
                 <span
                   className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                    user.isBlock
+                    user,
                   )}`}
                 >
-                  {user.isBlock ? (
+                  {user.is_blocked ? (
                     <XCircle className="w-3 h-3 mr-1" />
                   ) : (
                     <CheckCircle className="w-3 h-3 mr-1" />
                   )}
-                  {getStatusText(user.isBlock)}
+                  {getStatusText(user)}
                 </span>
               </td>
               <td className="py-3 px-4">
                 <div className="flex items-center space-x-2 text-sm text-gray-600">
                   <Calendar className="w-3 h-3" />
                   <span>
-                    {user.joinDate
-                      ? new Date(user.joinDate).toLocaleDateString()
+                    {user.date_joined
+                      ? new Date(user.date_joined).toLocaleDateString()
                       : "N/A"}
                   </span>
                 </div>
@@ -206,8 +179,7 @@ export default function UsersManagement() {
                 <div className="flex items-center space-x-2 text-sm">
                   <ShoppingBag className="w-3 h-3 text-gray-400" />
                   <span className="font-medium text-gray-900">
-                    {orders.filter((order) => order.userId === user.id)
-                      ?.length || 0}
+                    {user.orders_count}
                   </span>
                   <span className="text-gray-500">orders</span>
                 </div>
@@ -223,15 +195,15 @@ export default function UsersManagement() {
                     <span>View</span>
                   </button>
                   <button
-                    onClick={() => blockUser(user.id ,user.isBlock)}
+                    onClick={() => userAction(user.id, user.is_blocked ? "unblock" : "block")}
                     className={`flex items-center space-x-1 px-3 py-1 rounded-lg text-sm transition-colors ${
-                      user.isBlock
+                      user.is_blocked
                         ? "bg-green-50 text-green-600 hover:bg-green-100"
                         : "bg-red-50 text-red-600 hover:bg-red-100"
                     }`}
-                    title={user.isBlock ? "Unblock User" : "Block User"}
+                    title={user.is_blocked ? "Unblock User" : "Block User"}
                   >
-                    {user.isBlock ? (
+                    {user.is_blocked ? (
                       <>
                         <CheckCircle className="w-3 h-3" />
                         <span>Unblock</span>
@@ -248,6 +220,39 @@ export default function UsersManagement() {
             </tr>
           )}
         />
+        <div className="flex justify-between items-center mt-4">
+          <button
+            disabled={!userPagination.previous}
+            onClick={() =>
+              fetchUsers({
+                page: userPagination.page - 1,
+                search: searchTerm,
+                status: statusFilter,
+              })
+            }
+            className="px-4 py-2 bg-gray-100 rounded disabled:opacity-50"
+          >
+            Previous
+          </button>
+
+          <span className="text-sm text-gray-600">
+            Page {userPagination.page}
+          </span>
+
+          <button
+            disabled={!userPagination.next}
+            onClick={() =>
+              fetchUsers({
+                page: userPagination.page + 1,
+                search: searchTerm,
+                status: statusFilter,
+              })
+            }
+            className="px-4 py-2 bg-gray-100 rounded disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );

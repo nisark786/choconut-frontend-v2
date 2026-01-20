@@ -9,3 +9,4 @@ export const getPageItems = (items, currentPage, itemsPerPage) => {
 export const getTotalPages = (items, itemsPerPage) => {
   return Math.ceil(items.length / itemsPerPage);
 };
+ 

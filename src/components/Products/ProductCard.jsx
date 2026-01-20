@@ -7,24 +7,30 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function ProductCard({ product }) {
-  if (!product) return null; 
+  if (!product) return null;
 
   const navigate = useNavigate();
-  const { currentUser, cart, addToCart, removeFromCart, wishlist, toggleWishlist } = useContext(UserContext);
+  const {
+    currentUser,
+    cart,
+    addToCart,
+    removeFromCart,
+    wishlist,
+    toggleWishlist,
+  } = useContext(UserContext);
   const [actionLoading, setActionLoading] = useState(false);
 
-  const inCart = cart.some((item) => item.id === product.id);
+  const cartProductIds = new Set(cart?.items?.map((i) => i.product.id));
+  const inCart = cartProductIds.has(product.id);
   const inWishlist = wishlist.some((item) => item.id === product.id);
   const isOutOfStock = product.stock === 0;
 
-  
   const goToDetails = () => {
-    navigate(`/product/${product.id}`); 
+    navigate(`/product/${product.id}`);
   };
 
-
   const handleCart = async (e) => {
-    e.stopPropagation(); 
+    e.stopPropagation();
     if (!requireLogin(currentUser, navigate)) return;
 
     if (isOutOfStock) {
@@ -38,7 +44,7 @@ export default function ProductCard({ product }) {
         await removeFromCart(product.id);
         toast.info("Removed from cart!");
       } else {
-        await addToCart(product);
+        await addToCart(product.id);
         toast.success("Added to cart!");
       }
     } catch {
@@ -49,14 +55,13 @@ export default function ProductCard({ product }) {
   };
 
   const handleWishlist = async (e) => {
-    e.stopPropagation(); 
+    e.stopPropagation();
     if (!requireLogin(currentUser, navigate)) return;
 
     setActionLoading(true);
     try {
       await toggleWishlist(product);
-      if (inWishlist) toast.info("Removed from wishlist!");
-      else toast.success("Added to wishlist!");
+      
     } catch {
       toast.error("Operation failed. Please try again.");
     } finally {
@@ -66,7 +71,7 @@ export default function ProductCard({ product }) {
 
   return (
     <div
-      onClick={goToDetails} 
+      onClick={goToDetails}
       className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl border border-amber-200 overflow-hidden transition-all duration-300 hover:scale-105 cursor-pointer relative"
     >
       {/* Product Image */}
@@ -86,7 +91,9 @@ export default function ProductCard({ product }) {
 
       {/* Product Info */}
       <div className="p-4">
-        <h3 className="font-semibold text-lg text-amber-900 mb-1">{product.name}</h3>
+        <h3 className="font-semibold text-lg text-amber-900 mb-1">
+          {product.name}
+        </h3>
         <p className="text-amber-700 text-sm mb-2">{product.category}</p>
         <div className="flex items-center justify-between">
           <span className="font-bold text-amber-900">₹{product.price}</span>
@@ -101,7 +108,7 @@ export default function ProductCard({ product }) {
       {/* Action Buttons */}
       <div className="flex items-center justify-between space-x-2 p-4">
         <button
-          onClick={handleCart} 
+          onClick={handleCart}
           disabled={isOutOfStock || actionLoading}
           className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 ${
             inCart
@@ -114,13 +121,15 @@ export default function ProductCard({ product }) {
           ) : (
             <>
               <ShoppingCart className="w-4 h-4" />
-              <span className="text-sm">{inCart ? "Remove" : "Add to Cart"}</span>
+              <span className="text-sm">
+                {inCart ? "Remove" : "Add to Cart"}
+              </span>
             </>
           )}
         </button>
 
         <button
-          onClick={handleWishlist} 
+          onClick={handleWishlist}
           disabled={actionLoading}
           className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-200 border-2 ${
             inWishlist

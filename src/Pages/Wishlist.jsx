@@ -7,7 +7,7 @@ import { Heart, ShoppingCart, Trash2, ArrowRight, LogIn, Search } from "lucide-r
 import "react-toastify/dist/ReactToastify.css";
 
 export default function Wishlist() {
-  const { currentUser, addToCart, toggleWishlist ,wishlist ,setWishlist } = useContext(UserContext);
+  const { currentUser, addToCart, removeFromWishlist ,wishlist } = useContext(UserContext);
   const navigate = useNavigate();
   const [loadingIds, setLoadingIds] = useState([]);
 
@@ -36,8 +36,7 @@ export default function Wishlist() {
   const handleRemove = async (product) => {
     setLoadingIds((prev) => [...prev, product.id]);
     try {
-      await toggleWishlist(product);
-      setWishlist((prev) => prev.filter((item) => item.id !== product.id));
+      await removeFromWishlist(product.id);
       toast.success("Removed from wishlist!");
     } catch (err) {
       toast.error("Failed to remove from wishlist.");
@@ -50,9 +49,8 @@ export default function Wishlist() {
   const handleAddToCart = async (product) => {
     setLoadingIds((prev) => [...prev, product.id]);
     try {
-      await addToCart(product);
-      await toggleWishlist(product);
-      setWishlist((prev) => prev.filter((item) => item.id !== product.id));
+      await addToCart(product.id);
+      await removeFromWishlist(product.id);
       toast.success("Added to cart and removed from wishlist!");
     } catch (err) {
       toast.error("Failed to add to cart.");

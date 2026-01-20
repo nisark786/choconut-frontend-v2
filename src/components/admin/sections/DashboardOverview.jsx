@@ -16,7 +16,7 @@ import { useContext } from "react";
 
 
 export default function DashboardOverview() {
-  const { orders, products, users ,getUserName} = useContext(AdminContext);
+  const { orders, products, users, userCount } = useContext(AdminContext);
   const totalRevenue = orders.reduce((acc, item) => {
     return acc + item.total;
   }, 0);
@@ -24,7 +24,7 @@ export default function DashboardOverview() {
   const monthlyRevenue = Array(12).fill(0);
 
   orders.forEach((order) => {
-    const month = new Date(order.createdAt).getMonth();
+    const month = new Date(order.created_at).getMonth();
     monthlyRevenue[month] += order.total;
   });
 
@@ -50,9 +50,8 @@ export default function DashboardOverview() {
   const topProducts = products.map(p => {
   const totalSales = orders.reduce((sum, o) => {
     if (!o.items) return sum;
-    // Find the item in the order that matches the product
-    const item = o.items.find(i => i.id === p.id);
-    return sum + (item ? item.qty : 0); // use 'qty'
+    const item = o.items.find(i => i.product === p.id);
+    return sum + (item ? item.qty : 0); 
   }, 0);
 
   return { name: p.name, sales: totalSales };
@@ -83,7 +82,7 @@ export default function DashboardOverview() {
     },
     {
       title: "Total Users",
-      value: users.length,
+      value: userCount,
       icon: Users,
       color: "bg-purple-500",
     },

@@ -1,55 +1,118 @@
 import { createContext, useState, useEffect } from "react";
-import axios from "axios";
+import api from "../api/axios";
 import { toast } from "react-toastify";
+import { bootstrapAuth } from "../api/bootstrapAuth";
+import { isLoginInProgress } from "../api/auth";
 
 export const AdminContext = createContext();
+
 export default function AdminProvider({ children }) {
-  const API_URL = "https://choco-nut-server.onrender.com";
-
   const [users, setUsers] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [carts, setCarts] = useState([]);
-  const [wishlists, setWishlists] = useState([]);
-  const [orders, setOrders] = useState([]);
+  const [userPagination, setUserPagination] = useState({
+    count: 0,
+    next: null,
+    previous: null,
+    page: 1,
+  });
+  const [userStats, setUserStats] = useState({
+    total: 0,
+    active: 0,
+    blocked: 0,
+    notVerified: 0,
+    newThisMonth: 0,
+  });
 
+  const [orders, setOrders] = useState([]);
+  const [orderPagination, setOrderPagination] = useState({
+    count: 0,
+    next: null,
+    previous: null,
+    page: 1,
+  });
+  const [orderStats, setOrderStats] = useState({});
+  const [products, setProducts] = useState([]);
 
   const [editingOrderId, setEditingOrderId] = useState(null);
   const [updatedStatus, setUpdatedStatus] = useState("");
+  const [loadingAdmin, setLoadingAdmin] = useState(true);
 
-  //for fetch endpoints
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [
-          usersRes,
-          productsRes,
-          cartsRes,
-          wishlistsRes,
-          ordersRes,
-        ] = await Promise.all([
-          axios.get(`${API_URL}/users`),
-          axios.get(`${API_URL}/products`),
-          axios.get(`${API_URL}/carts`),
-          axios.get(`${API_URL}/wishlists`),
-          axios.get(`${API_URL}/orders`),
-        ]);
+    const initAdmin = async () => {
+      if (isLoginInProgress()) {
+        await new Promise((r) => setTimeout(r, 300));
+      }
 
-        setUsers(usersRes.data || []);
-        setProducts(productsRes.data || []);
-        setCarts(cartsRes.data || []);
-        setWishlists(wishlistsRes.data || []);
-        setOrders(ordersRes.data || []);
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
+      try {
+        await bootstrapAuth();
+        await fetchUsers();
+        await fetchOrders();
+
+        const [productsRes] = await Promise.all([api.get("admin/products/")]);
+
+        setProducts(productsRes.data.results || []);
+      } catch (err) {
+        if (err.response?.status !== 401 && err.response?.status !== 403) {
+          console.error("Admin bootstrap failed:", err);
+          toast.error("Failed to load admin data");
+        }
+      } finally {
+        setLoadingAdmin(false);
       }
     };
 
-    fetchData();
+    initAdmin();
   }, []);
+
+  const fetchUsers = async ({ page = 1, search = "", status = "all" } = {}) => {
+    const params = {
+      page,
+      include_orders: true,
+    };
+
+    if (search) params.search = search;
+    if (status !== "all") params.status = status;
+
+    const res = await api.get("admin/users/", { params });
+
+    setUsers(res.data.results.results);
+    setUserStats({
+      total: res.data.results.stats.total,
+      active: res.data.results.stats.active,
+      blocked: res.data.results.stats.blocked,
+      notVerified: res.data.results.stats.not_verified,
+      newThisMonth: res.data.results.stats.new_this_month,
+    });
+
+    setUserPagination({
+      count: res.data.count,
+      next: res.data.next,
+      previous: res.data.previous,
+      page,
+    });
+  };
+
+  const fetchOrders = async ({
+    page = 1,
+    search = "",
+    status = "all",
+  } = {}) => {
+    const res = await api.get("admin/orders/", {
+      params: { page, search, status },
+    });
+
+    setOrders(res.data.results.results);
+    setOrderStats(res.data.results.stats);
+    setOrderPagination({
+      count: res.data.count,
+      next: res.data.next,
+      previous: res.data.previous,
+      page,
+    });
+  };
 
   const addProduct = async (newProduct) => {
     try {
-      const res = await axios.post(`${API_URL}/products`, newProduct);
+      const res = await api.post(`admin/products/`, newProduct);
       setProducts((prev) => [...prev, res.data]);
     } catch (err) {
       console.error("Add product error:", err);
@@ -58,7 +121,7 @@ export default function AdminProvider({ children }) {
 
   const deleteProduct = async (id) => {
     try {
-      await axios.delete(`${API_URL}/products/${id}`);
+      await api.delete(`admin/products/${id}/`);
       setProducts((prev) => prev.filter((p) => p.id !== id));
     } catch (err) {
       console.error("Delete product error:", err);
@@ -67,7 +130,7 @@ export default function AdminProvider({ children }) {
 
   const updateProduct = async (id, updatedData) => {
     try {
-      const res = await axios.put(`${API_URL}/products/${id}`, updatedData);
+      const res = await api.put(`admin/products/${id}/`, updatedData);
       setProducts((prev) => prev.map((p) => (p.id === id ? res.data : p)));
     } catch (error) {
       console.error("Error updating product:", error);
@@ -75,79 +138,105 @@ export default function AdminProvider({ children }) {
     }
   };
 
-  const getUserName = (userId) => {
-    const user = users.find((u) => u.id === userId);
-    return user.name;
-  };
+  const handleSaveStatus = async ({ orderId, page, search, status }) => {
+  try {
+    await api.patch(`admin/orders/${orderId}/`, {
+      order_status: updatedStatus,
+    });
 
-  const handleSaveStatus = async (orderId) => {
-    try {
-      await axios.patch(`${API_URL}/orders/${orderId}`, {
-        status: updatedStatus,
-      });
-      setOrders((prevOrders) =>
-        prevOrders.map((order) =>
-          order.id === orderId ? { ...order, status: updatedStatus } : order
-        )
-      );
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === orderId ? { ...o, order_status: updatedStatus } : o
+      )
+    );
 
-      toast.success("Order status updated!");
-    } catch (err) {
-      toast.error("Failed to update order!");
-    }
+    await fetchOrders({ page, search, status });
+
+    toast.success("Order status updated!");
+  } catch (err) {
+    toast.error("Failed to update order!");
+  } finally {
     setEditingOrderId(null);
-  };
+  }
+};
 
 
-  const blockUser = async (userId, currentStatus) => {
+  const userAction = async (userId, action) => {
     try {
-      const newStatus = !currentStatus;
-      await axios.patch(`${API_URL}/users/${userId}`, { isBlock: newStatus });
-      setUsers((prev) =>
-        prev.map((u) =>
-          u.id === userId ? { ...u, isBlock: newStatus } : u
-        )
-      );
-    } catch (error) {
-      console.error("user block status:", error);
-    }
-  };
-
-
-   const accessAdmin = async (userId, currentStatus) => {
-    try {
-      const newStatus = !currentStatus;
-
-      await axios.patch(`${API_URL}/users/${userId}`, {
-        isAdmin: newStatus,
+      const res = await api.patch(`admin/users/${userId}/action/`, {
+        action,
       });
 
       setUsers((prev) =>
         prev.map((u) =>
-          u.id === userId ? { ...u, isAdmin: newStatus } : u
-        )
+          u.id === userId
+            ? {
+                ...u,
+                is_blocked:
+                  action === "block"
+                    ? true
+                    : action === "unblock"
+                      ? false
+                      : u.is_blocked,
+                isAdmin:
+                  action === "make_admin"
+                    ? true
+                    : action === "remove_admin"
+                      ? false
+                      : u.isAdmin,
+              }
+            : u,
+        ),
       );
-    } catch (error) {
-      console.error("access admin status:", error);
+      setUserStats((prev) => {
+        if (action === "block") {
+          return {
+            ...prev,
+            active: prev.active - 1,
+            blocked: prev.blocked + 1,
+          };
+        }
+        if (action === "unblock") {
+          return {
+            ...prev,
+            active: prev.active + 1,
+            blocked: prev.blocked - 1,
+          };
+        }
+        return prev;
+      });
+
+      await fetchUsers({
+      page: userPagination.page,
+      search: "",
+      status: "all",
+    });
+
+      toast.success(res.data.message || "Action applied");
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Action failed");
     }
   };
+
   const value = {
     users,
-    products,
-    carts,
-    wishlists,
+    userStats,
+    userPagination,
+    fetchUsers,
     orders,
+    orderStats,
+    orderPagination,
+    fetchOrders,
+    products,
     addProduct,
     deleteProduct,
     updateProduct,
-    getUserName,
     handleSaveStatus,
     setEditingOrderId,
     setUpdatedStatus,
     editingOrderId,
     updatedStatus,
-    blockUser,
-    accessAdmin,
+    userAction,
   };
 
   return (

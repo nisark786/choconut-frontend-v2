@@ -3,7 +3,7 @@ import { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { UserContext } from "../context/UserContext";
 import { toast } from "react-toastify";
-import axios from "axios";
+import api from "../api/axios";
 import {
   Star,
   ArrowLeft,
@@ -12,7 +12,7 @@ import {
   Smile,
   Frown,
   Meh,
-  Send
+  Send,
 } from "lucide-react";
 
 export default function AddFeedback() {
@@ -24,7 +24,7 @@ export default function AddFeedback() {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  
+
   // Review form state
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
@@ -34,23 +34,23 @@ export default function AddFeedback() {
   const [pros, setPros] = useState("");
   const [cons, setCons] = useState("");
 
-useEffect(() => {
-  const fetchProduct = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get(`https://choco-nut-server.onrender.com/products/${id}`);
-      setProduct(res.data);
-    } catch (error) {
-      console.error("Error fetching product:", error);
-      toast.error("Failed to load product details");
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get(
+          `/products/${id}/reviews/`
+        );
+        setProduct(res.data);
+      } catch (error) {
+        toast.error("Failed to load product details");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  fetchProduct();
-}, [id]);
-
+    fetchProduct();
+  }, [id]);
 
   const getRatingLabel = (rating) => {
     const labels = {
@@ -58,11 +58,10 @@ useEffect(() => {
       2: "Fair",
       3: "Average",
       4: "Good",
-      5: "Excellent"
+      5: "Excellent",
     };
     return labels[rating] || "Select Rating";
   };
-
 
   const getRatingEmoji = (rating) => {
     const emojis = {
@@ -70,14 +69,14 @@ useEffect(() => {
       2: <Meh className="w-6 h-6 text-orange-500" />,
       3: <Meh className="w-6 h-6 text-yellow-500" />,
       4: <Smile className="w-6 h-6 text-lime-500" />,
-      5: <Smile className="w-6 h-6 text-green-500" />
+      5: <Smile className="w-6 h-6 text-green-500" />,
     };
     return emojis[rating] || null;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!currentUser) {
       toast.error("Please login to submit a review");
       navigate("/login", { state: { from: location } });
@@ -89,39 +88,27 @@ useEffect(() => {
       return;
     }
 
-    if (!title.trim() || !comment.trim()) {
-      toast.error("Please fill in title and comment");
-      return;
-    }
-
     setSubmitting(true);
 
     try {
-      // Submit review
-      const reviewData = {
-        productId: id,
-        userId: currentUser.id,
-        userName: currentUser.name,
+      await api.post(`/products/${id}/reviews/`, {
         rating,
         title: title.trim(),
         comment: comment.trim(),
         recommend,
-        pros: pros.trim(),
-        cons: cons.trim(),
-        date: new Date().toISOString().split('T')[0],
-      };
+      });
 
-      const res = await axios.post("https://choco-nut-server.onrender.com/reviews", reviewData);
-
-      if (res.status) {
-        toast.success("Review submitted successfully!");
-        navigate(`/product/${id}`);
-      } else {
-        throw new Error('Failed to submit review');
-      }
+      toast.success("Review submitted successfully");
+      navigate(`/product/${id}`);
     } catch (error) {
-      console.error('Error submitting review:', error);
-      toast.error("Failed to submit review. Please try again.");
+      if (error.response?.status === 400) {
+        toast.error(error.response.data.detail || "Invalid review data");
+      } else if (error.response?.status === 401) {
+        toast.error("Please login again");
+        navigate("/login");
+      } else {
+        toast.error("Failed to submit review");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -151,7 +138,6 @@ useEffect(() => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
           {/* Review Form */}
           <div className="lg:col-span-2">
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -160,7 +146,7 @@ useEffect(() => {
                 <h3 className="text-xl font-bold text-gray-900 mb-4">
                   Overall Rating
                 </h3>
-                
+
                 <div className="flex flex-col items-center space-y-4">
                   <div className="flex items-center space-x-4">
                     <div className="flex space-x-1">
@@ -184,7 +170,7 @@ useEffect(() => {
                       ))}
                     </div>
                   </div>
-                  
+
                   <div className="text-center">
                     <p className="text-2xl font-bold text-gray-900">
                       {getRatingLabel(hoverRating || rating)}
@@ -204,7 +190,7 @@ useEffect(() => {
                 <h3 className="text-xl font-bold text-gray-900 mb-4">
                   Would you recommend this product?
                 </h3>
-                
+
                 <div className="flex space-x-4">
                   <button
                     type="button"
@@ -218,7 +204,7 @@ useEffect(() => {
                     <ThumbsUp className="w-6 h-6" />
                     <span className="font-semibold">Yes, I recommend</span>
                   </button>
-                  
+
                   <button
                     type="button"
                     onClick={() => setRecommend(false)}
@@ -237,7 +223,10 @@ useEffect(() => {
               {/* Review Details */}
               <div className="bg-white rounded-2xl border border-amber-200 p-6 shadow-sm space-y-6">
                 <div>
-                  <label htmlFor="title" className="block text-lg font-bold text-gray-900 mb-3">
+                  <label
+                    htmlFor="title"
+                    className="block text-lg font-bold text-gray-900 mb-3"
+                  >
                     Review Title *
                   </label>
                   <input
@@ -255,7 +244,10 @@ useEffect(() => {
                 </div>
 
                 <div>
-                  <label htmlFor="comment" className="block text-lg font-bold text-gray-900 mb-3">
+                  <label
+                    htmlFor="comment"
+                    className="block text-lg font-bold text-gray-900 mb-3"
+                  >
                     Your Review *
                   </label>
                   <textarea
@@ -275,7 +267,10 @@ useEffect(() => {
                 {/* Pros & Cons */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="pros" className="block text-lg font-bold text-gray-900 mb-3">
+                    <label
+                      htmlFor="pros"
+                      className="block text-lg font-bold text-gray-900 mb-3"
+                    >
                       What you liked
                     </label>
                     <textarea
@@ -287,9 +282,12 @@ useEffect(() => {
                       className="w-full px-4 py-3 border-2 border-green-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-colors resize-none"
                     />
                   </div>
-                  
+
                   <div>
-                    <label htmlFor="cons" className="block text-lg font-bold text-gray-900 mb-3">
+                    <label
+                      htmlFor="cons"
+                      className="block text-lg font-bold text-gray-900 mb-3"
+                    >
                       What could be better
                     </label>
                     <textarea
@@ -303,7 +301,7 @@ useEffect(() => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Submit Button */}
               <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
                 <button
@@ -313,10 +311,15 @@ useEffect(() => {
                 >
                   Cancel
                 </button>
-                
+
                 <button
                   type="submit"
-                  disabled={submitting || rating === 0 || !title.trim() || !comment.trim()}
+                  disabled={
+                    submitting ||
+                    rating === 0 ||
+                    !title.trim() ||
+                    !comment.trim()
+                  }
                   className="flex-1 flex items-center justify-center space-x-2 py-4 px-6 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-bold hover:from-amber-600 hover:to-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
                 >
                   {submitting ? (

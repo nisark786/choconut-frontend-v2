@@ -1,96 +1,87 @@
-// src/pages/Login.jsx
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
-import { Eye, EyeOff, Mail, Lock, ArrowRight} from "lucide-react";
+import api from "../api/axios";
+import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
 import { UserContext } from "../context/UserContext";
 import { toast } from "react-toastify";
+import { setAccessToken, setLoginInProgress } from "../api/auth";
+import { GoogleLogin } from "@react-oauth/google";
+
 
 export default function Login() {
-  const { setCurrentUser } = useContext(UserContext);
+  const { currentUser, setCurrentUser, loadingAuth } = useContext(UserContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email);
-
-  const saveUserAndNavigate = (user) => {
-    if (user.isBlock) {
-    toast.error("Your account has been blocked");
-    return;
-  }
-    setCurrentUser(user);
-    localStorage.setItem("currentUser", JSON.stringify(user));
-    if (user.isAdmin) {
-      toast.success(`Welcome back ${user.name}`);
-      navigate("/admin"); 
-    } else {
-      toast.success("Welcome back to ChocoNut!");
-      navigate("/"); 
+  useEffect(() => {
+    if (currentUser && !loadingAuth) {
+      if(currentUser.isAdmin){
+        navigate("/admin/dashboard")
+      }else{
+        navigate("/");
+      }
     }
-  };
+  }, [currentUser, loadingAuth, navigate]);
+
+  const isValidEmail = (value) => /\S+@\S+\.\S+/.test(value);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
+    
+    const cleanEmail = email.trim().toLowerCase();
 
-    if (!isValidEmail(email)) {
-      setError("📧 Please enter a valid email address");
-      setLoading(false);
-      return;
+    if (!isValidEmail(cleanEmail)) {
+      return toast.error("Please enter a valid email address");
     }
 
-    try {
-      const res = await axios.get("https://choco-nut-server.onrender.com/users", {
-        params: { email, password },
-      });
+    setLoading(true);
+    setLoginInProgress(true);
 
-      if (res.data.length > 0) {
-        saveUserAndNavigate(res.data[0]);
-      } else {
-        setError("Invalid email or password");
-      }
+    try {
+      const res = await api.post("/login/", { email: cleanEmail, password });
+      
+      setAccessToken(res.data.access);
+      setCurrentUser(res.data.user);
+
+      toast.success("Welcome back to ChocoNut!");
+      navigate("/");
     } catch (err) {
-      console.error(err);
-      setError("Something went wrong! Please try again.");
+      const status = err.response?.status;
+      if (status === 401) {
+        toast.error("Invalid email or password");
+      } else if (status === 400) {
+        toast.error("Please fill in all fields");
+      } else {
+        toast.error("Service unavailable. Please try again later.");
+      }
     } finally {
+      setLoginInProgress(false);
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 py-8 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 py-12 px-4">
       <div className="max-w-md w-full">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <p className="text-amber-700">Sign in to your ChocoNut account</p>
-        </div>
+       
 
-        {/* Login Form */}
-        <div className="bg-white rounded-2xl shadow-xl border border-amber-200 p-6 sm:p-8">
-          {error && (
-            <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-2">
-              <span className="text-red-500">⚠️</span>
-              <p className="text-red-700 text-sm">{error}</p>
-            </div>
-          )}
-
-          <form onSubmit={handleLogin} className="space-y-5">
+        <div className="bg-white rounded-3xl shadow-2xl border border-amber-100 p-8">
+          <form onSubmit={handleLogin} className="space-y-6">
             {/* Email Field */}
             <div>
-              <label className="block text-sm font-medium text-amber-900 mb-2">
+              <label className="block text-sm font-semibold text-amber-900 mb-2">
                 Email Address
               </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-amber-400" />
+              <div className="relative group">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-400 group-focus-within:text-amber-600 transition-colors" />
                 <input
                   type="email"
-                  placeholder="your@email.com"
-                  className="w-full pl-10 pr-4 py-3 bg-amber-50 border border-amber-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 placeholder:text-amber-400 text-amber-900"
+                  autoComplete="email"
+                  placeholder="choconut@gmail.com"
+                  className="w-full pl-10 pr-4 py-3 bg-amber-50/50 border border-amber-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all placeholder:text-amber-300 text-amber-900"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -100,15 +91,21 @@ export default function Login() {
 
             {/* Password Field */}
             <div>
-              <label className="block text-sm font-medium text-amber-900 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-amber-400" />
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-sm font-semibold text-amber-900">
+                  Password
+                </label>
+                <Link to="/forgot-password" title="Recover account" className="text-xs font-medium text-amber-600 hover:text-orange-600 transition-colors">
+                  Forgot Password?
+                </Link>
+              </div>
+              <div className="relative group">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-400 group-focus-within:text-amber-600 transition-colors" />
                 <input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  className="w-full pl-10 pr-12 py-3 bg-amber-50 border border-amber-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 placeholder:text-amber-400 text-amber-900"
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                  className="w-full pl-10 pr-12 py-3 bg-amber-50/50 border border-amber-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all placeholder:text-amber-300 text-amber-900"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -116,9 +113,9 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-amber-400 hover:text-amber-600 transition-colors duration-200"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-400 hover:text-amber-600 transition-colors p-1"
                 >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
@@ -127,13 +124,10 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white py-3 px-4 rounded-xl font-semibold hover:from-amber-600 hover:to-orange-600 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              className="w-full bg-gradient-to-r from-amber-600 to-orange-600 text-white py-3.5 rounded-xl font-bold hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               {loading ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Signing In...</span>
-                </>
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
                   <span>Sign In</span>
@@ -143,23 +137,50 @@ export default function Login() {
             </button>
           </form>
 
-          {/* Divider */}
-          <div className="flex items-center my-6">
-            <div className="flex-1 border-t border-amber-200"></div>
-            <span className="px-3 text-amber-600 text-sm">
-              New to ChocoNut?
-            </span>
-            <div className="flex-1 border-t border-amber-200"></div>
+          {/* Social Divider */}
+          <div className="relative my-8">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-amber-100"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-white text-amber-400 font-medium">Or continue with</span>
+            </div>
           </div>
 
-          {/* Signup Link */}
-          <div className="text-center">
+          {/* Google Login with Layout Shield */}
+          <div className="flex justify-center min-h-[44px]">
+            <GoogleLogin
+              onSuccess={async (credentialResponse) => {
+                try {
+                  setLoginInProgress(true);
+                  const res = await api.post("/google/", {
+                    token: credentialResponse.credential,
+                  });
+                  setAccessToken(res.data.access);
+                  setCurrentUser(res.data.user);
+                  toast.success("Welcome back!");
+                  navigate("/");
+                } catch (error) {
+                  toast.error("Google authentication failed");
+                } finally {
+                  setLoginInProgress(false);
+                }
+              }}
+              onError={() => toast.error("Google login failed")}
+              theme="outline"
+              shape="pill"
+              size="large"
+            />
+          </div>
+
+          {/* Signup Footer */}
+          <div className="mt-6 pt-2 border-t border-amber-50 text-center">
+            <p className="text-amber-600 text-sm mb-4">New to ChocoNut?</p>
             <Link
               to="/signup"
-              className="inline-flex items-center space-x-2 text-amber-700 hover:text-amber-900 font-medium transition-colors duration-200 border border-amber-300 hover:border-amber-500 px-6 py-2 rounded-lg bg-amber-50/50"
+              className="w-full flex items-center justify-center space-x-2 text-amber-800 font-bold py-3 px-4 rounded-xl border-2 border-amber-100 hover:bg-amber-50 transition-all"
             >
-              <span>Create New Account</span>
-              <ArrowRight className="w-4 h-4" />
+              <span>Create Account</span>
             </Link>
           </div>
         </div>
@@ -167,3 +188,5 @@ export default function Login() {
     </div>
   );
 }
+
+
