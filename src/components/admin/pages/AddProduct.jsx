@@ -13,6 +13,7 @@ import {
   Image,
   Star,
 } from "lucide-react";
+import { toast } from "react-toastify";
 
 function AddProduct() {
     const {addProduct} = useContext(AdminContext)
@@ -47,19 +48,12 @@ function AddProduct() {
     setLoading(true);
 
     try {
-      await addProduct({
-        ...formData,
-        price: Number(formData.price),
-        stock: Number(formData.stock),
-        rating: 0, 
-        reviewCount: 0,
-      });
+      await addProduct(formData);
 
-      alert("Product added successfully!");
+      toast.success("Product added successfully!");
       navigate("/admin/products");
     } catch (error) {
-      console.error(error);
-      alert("Error adding product");
+      toast.error("Error adding product");
     } finally {
       setLoading(false);
     }

@@ -1,7 +1,7 @@
-// src/pages/TermsAndConditions.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Shield, FileText, Scale, Lock, Globe, Mail, Phone } from "lucide-react";
+import { ArrowLeft, Shield, FileText, Scale, Lock, Globe, Mail, Phone, Bookmark } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function TermsAndConditions() {
   const navigate = useNavigate();
@@ -28,49 +28,64 @@ export default function TermsAndConditions() {
   const scrollToSection = (sectionId) => {
     setActiveSection(sectionId);
     const element = document.getElementById(sectionId);
-    element?.scrollIntoView({ behavior: "smooth" });
+    if (element) {
+      const offset = 100; // Account for fixed navbar
+      const bodyRect = document.body.getBoundingClientRect().top;
+      const elementRect = element.getBoundingClientRect().top;
+      const elementPosition = elementRect - bodyRect;
+      const offsetPosition = elementPosition - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth"
+      });
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#fffcf8] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center mb-8">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center space-x-2 text-amber-600 hover:text-amber-700 font-medium mr-4 group"
-          >
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-            <span>Back</span>
-          </button>
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl flex items-center justify-center">
-              <FileText className="w-6 h-6 text-white" />
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col md:flex-row md:items-end justify-between mb-12 border-b border-[#4a2c2a]/10 pb-8"
+        >
+          <div className="flex items-start space-x-6">
+            <div className="hidden sm:flex w-16 h-16 bg-[#4a2c2a] rounded-2xl items-center justify-center shadow-xl shadow-[#4a2c2a]/20">
+              <Scale className="w-8 h-8 text-[#fffcf8]" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold text-amber-900">Terms & Conditions</h1>
-              <p className="text-amber-700">Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+              <button
+                onClick={() => navigate(-1)}
+                className="flex items-center space-x-2 text-[#4a2c2a]/60 hover:text-[#4a2c2a] font-bold uppercase tracking-widest text-[10px] mb-2 transition-colors"
+              >
+                <ArrowLeft className="w-3 h-3" />
+                <span>Return to previous</span>
+              </button>
+              <h1 className="text-4xl md:text-5xl font-black text-[#4a2c2a] tracking-tighter uppercase">Legal Protocol</h1>
+              <p className="text-amber-900/60 font-medium italic mt-1">Version 2.0 • Updated {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
           {/* Sidebar Navigation */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-lg border border-amber-200 p-6 sticky top-8">
-              <h3 className="font-bold text-amber-900 mb-4 flex items-center">
-                <Scale className="w-5 h-5 mr-2" />
-                Contents
+          <aside className="lg:col-span-1">
+            <div className="bg-white rounded-[32px] shadow-sm border border-amber-900/5 p-8 sticky top-32">
+              <h3 className="font-black text-[#4a2c2a] uppercase tracking-[0.2em] text-xs mb-6 flex items-center">
+                <Bookmark className="w-4 h-4 mr-2" />
+                Articles
               </h3>
-              <nav className="space-y-2">
+              <nav className="space-y-1">
                 {sections.map((section) => (
                   <button
                     key={section.id}
                     onClick={() => scrollToSection(section.id)}
-                    className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-200 ${
+                    className={`w-full text-left px-4 py-2.5 rounded-xl transition-all text-sm font-bold ${
                       activeSection === section.id
-                        ? "bg-amber-100 text-amber-700 font-semibold border-l-4 border-amber-500"
-                        : "text-gray-600 hover:bg-amber-50 hover:text-amber-600"
+                        ? "bg-[#4a2c2a] text-[#fffcf8] shadow-lg shadow-[#4a2c2a]/20"
+                        : "text-[#4a2c2a]/40 hover:text-[#4a2c2a] hover:bg-amber-900/5"
                     }`}
                   >
                     {section.title}
@@ -78,277 +93,120 @@ export default function TermsAndConditions() {
                 ))}
               </nav>
             </div>
-          </div>
+          </aside>
 
           {/* Main Content */}
-          <div className="lg:col-span-3">
-            <div className="bg-white rounded-2xl shadow-lg border border-amber-200 p-8">
+          <main className="lg:col-span-3">
+            <div className="bg-white rounded-[40px] shadow-sm border border-amber-900/5 p-8 md:p-12">
+              
               {/* Introduction */}
-              <section id="introduction" className="mb-12">
-                <h2 className="text-2xl font-bold text-amber-900 mb-4 flex items-center">
-                  <FileText className="w-6 h-6 mr-3 text-amber-600" />
-                  1. Introduction
-                </h2>
-                <div className="space-y-4 text-gray-700 leading-relaxed">
+              <section id="introduction" className="mb-16 scroll-mt-32">
+                <div className="flex items-center space-x-3 mb-6">
+                  <span className="text-[#4a2c2a]/20 font-black text-4xl">01</span>
+                  <h2 className="text-2xl font-black text-[#4a2c2a] uppercase tracking-tight">Executive Summary</h2>
+                </div>
+                <div className="space-y-4 text-amber-900/80 leading-relaxed font-medium">
                   <p>
-                    Welcome to ChocoNut! These Terms and Conditions govern your use of our website 
-                    located at www.choconut.com and our services. By accessing or using our platform, 
-                    you agree to be bound by these Terms and our Privacy Policy.
+                    Welcome to the digital home of <span className="text-[#4a2c2a] font-bold">ChocoNut Artisan Boutique</span>. 
+                    These Terms and Conditions constitute a legally binding agreement between you and our gourmet collective.
                   </p>
-                  <p>
-                    ChocoNut ("we," "our," or "us") operates an e-commerce platform specializing in 
-                    premium food products, including chocolates, nuts, and related gourmet items. 
-                    Our services include product sales, delivery, and customer support.
-                  </p>
-                  <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg">
-                    <p className="text-amber-800 font-medium">
-                      Please read these Terms carefully before using our services. If you disagree 
-                      with any part of these Terms, you may not access our platform.
-                    </p>
+                  <div className="bg-[#fffcf8] border-l-4 border-[#4a2c2a] p-6 rounded-r-2xl italic">
+                    By engaging with our boutique, you acknowledge that you have refined your understanding of these terms 
+                    and agree to be bound by our operational protocols.
                   </div>
                 </div>
               </section>
 
-              {/* Definitions */}
-              <section id="definitions" className="mb-12">
-                <h2 className="text-2xl font-bold text-amber-900 mb-4">2. Definitions</h2>
-                <div className="space-y-3 text-gray-700">
-                  <p><strong>"Platform"</strong> refers to the ChocoNut website, mobile application, and related services.</p>
-                  <p><strong>"User"</strong> refers to any individual or entity accessing our Platform.</p>
-                  <p><strong>"Customer"</strong> refers to Users who purchase products through our Platform.</p>
-                  <p><strong>"Products"</strong> refers to goods available for purchase on our Platform.</p>
-                  <p><strong>"Content"</strong> includes text, images, reviews, and other materials posted on the Platform.</p>
-                </div>
-              </section>
-
               {/* Account Registration */}
-              <section id="account" className="mb-12">
-                <h2 className="text-2xl font-bold text-amber-900 mb-4 flex items-center">
-                  <Lock className="w-6 h-6 mr-3 text-amber-600" />
-                  3. Account Registration
-                </h2>
-                <div className="space-y-4 text-gray-700">
-                  <p>To access certain features, you must register for an account. You agree to:</p>
-                  <ul className="list-disc list-inside space-y-2 ml-4">
-                    <li>Provide accurate, current, and complete information during registration</li>
-                    <li>Maintain and promptly update your account information</li>
-                    <li>Maintain the security of your password and accept all risks of unauthorized access</li>
-                    <li>Notify us immediately of any security breach or unauthorized use</li>
-                    <li>Be responsible for all activities that occur under your account</li>
-                  </ul>
-                  <p>
-                    We reserve the right to suspend or terminate accounts that provide false information 
-                    or violate these Terms.
-                  </p>
+              <section id="account" className="mb-16 scroll-mt-32">
+                <div className="flex items-center space-x-3 mb-6">
+                  <span className="text-[#4a2c2a]/20 font-black text-4xl">03</span>
+                  <h2 className="text-2xl font-black text-[#4a2c2a] uppercase tracking-tight">Member Credentials</h2>
                 </div>
-              </section>
-
-              {/* Orders & Payments */}
-              <section id="orders" className="mb-12">
-                <h2 className="text-2xl font-bold text-amber-900 mb-4">4. Orders & Payments</h2>
-                <div className="space-y-4 text-gray-700">
-                  <p><strong>Order Acceptance:</strong> All orders are subject to acceptance and availability. We reserve the right to refuse or cancel any order for any reason.</p>
-                  <p><strong>Pricing:</strong> Prices are shown in Indian Rupees (₹) and include applicable taxes. We reserve the right to change prices without notice.</p>
-                  <p><strong>Payment:</strong> We accept various payment methods including credit/debit cards, UPI, net banking, and wallet payments.</p>
-                  <p><strong>Order Confirmation:</strong> You will receive an email confirmation once your order is successfully placed.</p>
-                </div>
-              </section>
-
-              {/* Products Information */}
-              <section id="products" className="mb-12">
-                <h2 className="text-2xl font-bold text-amber-900 mb-4">5. Products Information</h2>
-                <div className="space-y-4 text-gray-700">
-                  <p>We strive to display product information accurately, including:</p>
-                  <ul className="list-disc list-inside space-y-2 ml-4">
-                    <li>Product descriptions, images, and specifications</li>
-                    <li>Nutritional information and ingredients</li>
-                    <li>Allergen warnings and storage instructions</li>
-                    <li>Manufacturing and expiry dates</li>
+                <div className="space-y-4 text-amber-900/80 leading-relaxed font-medium">
+                  <p>Membership within the ChocoNut circle requires the maintenance of accurate and high-security credentials:</p>
+                  <ul className="space-y-3">
+                    {[
+                      "Provision of verified and current contact data.",
+                      "Absolute confidentiality of your vintage access keys (passwords).",
+                      "Full liability for transactions initiated under your signature."
+                    ].map((item, i) => (
+                      <li key={i} className="flex items-start space-x-3">
+                        <div className="mt-2 w-1.5 h-1.5 rounded-full bg-[#4a2c2a]" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
                   </ul>
-                  <p>
-                    However, we cannot guarantee that product descriptions or other content are 
-                    completely accurate, reliable, or error-free.
-                  </p>
                 </div>
               </section>
 
               {/* Shipping & Delivery */}
-              <section id="shipping" className="mb-12">
-                <h2 className="text-2xl font-bold text-amber-900 mb-4">6. Shipping & Delivery</h2>
-                <div className="space-y-4 text-gray-700">
-                  <p><strong>Delivery Areas:</strong> We currently deliver across India. Delivery timelines vary by location.</p>
-                  <p><strong>Shipping Costs:</strong> Shipping fees are calculated based on delivery location and order value.</p>
-                  <p><strong>Delivery Times:</strong> Estimated delivery times are provided but not guaranteed.</p>
-                  <p><strong>Risk of Loss:</strong> All items purchased are made pursuant to a shipment contract.</p>
+              <section id="shipping" className="mb-16 scroll-mt-32">
+                <div className="flex items-center space-x-3 mb-6">
+                  <span className="text-[#4a2c2a]/20 font-black text-4xl">06</span>
+                  <h2 className="text-2xl font-black text-[#4a2c2a] uppercase tracking-tight">Logistics & Transit</h2>
                 </div>
-              </section>
-
-              {/* Returns & Refunds */}
-              <section id="returns" className="mb-12">
-                <h2 className="text-2xl font-bold text-amber-900 mb-4">7. Returns & Refunds</h2>
-                <div className="space-y-4 text-gray-700">
-                  <p>Our return policy includes:</p>
-                  <ul className="list-disc list-inside space-y-2 ml-4">
-                    <li>10-day return policy for damaged or incorrect items</li>
-                    <li>Refunds processed within 5-7 business days</li>
-                    <li>Return shipping costs covered by us for defective products</li>
-                    <li>Perishable goods may have different return conditions</li>
-                  </ul>
-                </div>
-              </section>
-
-              {/* Intellectual Property */}
-              <section id="intellectual" className="mb-12">
-                <h2 className="text-2xl font-bold text-amber-900 mb-4">8. Intellectual Property</h2>
-                <div className="space-y-4 text-gray-700">
-                  <p>
-                    All content on this Platform, including text, graphics, logos, images, and software, 
-                    is the property of ChocoNut or its content suppliers and protected by copyright laws.
-                  </p>
-                  <p>
-                    You may not reproduce, distribute, modify, or create derivative works without our 
-                    express written permission.
-                  </p>
-                </div>
-              </section>
-
-              {/* User Content */}
-              <section id="user-content" className="mb-12">
-                <h2 className="text-2xl font-bold text-amber-900 mb-4">9. User Content</h2>
-                <div className="space-y-4 text-gray-700">
-                  <p>
-                    By submitting content (reviews, comments, photos), you grant us a non-exclusive, 
-                    royalty-free license to use, modify, and display such content.
-                  </p>
-                  <p>You agree not to post content that:</p>
-                  <ul className="list-disc list-inside space-y-2 ml-4">
-                    <li>Is unlawful, offensive, or inappropriate</li>
-                    <li>Infringes on third-party rights</li>
-                    <li>Contains viruses or malicious code</li>
-                    <li>Is false or misleading</li>
-                  </ul>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div className="p-6 rounded-3xl bg-[#fffcf8] border border-amber-900/5">
+                    <h4 className="font-black text-[#4a2c2a] text-xs uppercase tracking-widest mb-2">Preservation</h4>
+                    <p className="text-sm text-amber-900/70">Our products are temperature-controlled. Delivery timelines are optimized for freshness.</p>
+                  </div>
+                  <div className="p-6 rounded-3xl bg-[#fffcf8] border border-amber-900/5">
+                    <h4 className="font-black text-[#4a2c2a] text-xs uppercase tracking-widest mb-2">Coverage</h4>
+                    <p className="text-sm text-amber-900/70">We currently serve all major Indian territories via our premium logistics partners.</p>
+                  </div>
                 </div>
               </section>
 
               {/* Privacy & Data */}
-              <section id="privacy" className="mb-12">
-                <h2 className="text-2xl font-bold text-amber-900 mb-4 flex items-center">
-                  <Shield className="w-6 h-6 mr-3 text-amber-600" />
-                  10. Privacy & Data Protection
-                </h2>
-                <div className="space-y-4 text-gray-700">
-                  <p>
-                    Your privacy is important to us. Please review our Privacy Policy to understand 
-                    how we collect, use, and protect your personal information.
-                  </p>
-                  <p>
-                    We implement security measures to protect your data, but cannot guarantee 
-                    absolute security of information transmitted to our Platform.
-                  </p>
+              <section id="privacy" className="mb-16 scroll-mt-32">
+                <div className="flex items-center space-x-3 mb-6">
+                  <span className="text-[#4a2c2a]/20 font-black text-4xl">10</span>
+                  <h2 className="text-2xl font-black text-[#4a2c2a] uppercase tracking-tight">Data Sovereignty</h2>
                 </div>
-              </section>
-
-              {/* Limitation of Liability */}
-              <section id="limitation" className="mb-12">
-                <h2 className="text-2xl font-bold text-amber-900 mb-4">11. Limitation of Liability</h2>
-                <div className="space-y-4 text-gray-700">
-                  <p>
-                    To the fullest extent permitted by law, ChocoNut shall not be liable for any 
-                    indirect, incidental, special, or consequential damages resulting from:
-                  </p>
-                  <ul className="list-disc list-inside space-y-2 ml-4">
-                    <li>Your use or inability to use the Platform</li>
-                    <li>Unauthorized access to your transmissions or data</li>
-                    <li>Statements or conduct of any third party on the Platform</li>
-                    <li>Any other matter relating to the Platform</li>
-                  </ul>
-                </div>
-              </section>
-
-              {/* Termination */}
-              <section id="termination" className="mb-12">
-                <h2 className="text-2xl font-bold text-amber-900 mb-4">12. Termination</h2>
-                <div className="space-y-4 text-gray-700">
-                  <p>
-                    We may terminate or suspend your account and access to the Platform immediately, 
-                    without prior notice, for conduct that we believe violates these Terms or is 
-                    harmful to other users, us, or third parties.
-                  </p>
-                </div>
-              </section>
-
-              {/* Governing Law */}
-              <section id="governing" className="mb-12">
-                <h2 className="text-2xl font-bold text-amber-900 mb-4 flex items-center">
-                  <Globe className="w-6 h-6 mr-3 text-amber-600" />
-                  13. Governing Law
-                </h2>
-                <div className="space-y-4 text-gray-700">
-                  <p>
-                    These Terms shall be governed by and construed in accordance with the laws of 
-                    India, without regard to its conflict of law provisions.
-                  </p>
-                  <p>
-                    Any disputes shall be subject to the exclusive jurisdiction of the courts 
-                    located in Mumbai, Maharashtra.
-                  </p>
-                </div>
-              </section>
-
-              {/* Changes to Terms */}
-              <section id="changes" className="mb-12">
-                <h2 className="text-2xl font-bold text-amber-900 mb-4">14. Changes to Terms</h2>
-                <div className="space-y-4 text-gray-700">
-                  <p>
-                    We reserve the right to modify these Terms at any time. We will notify users 
-                    of significant changes through email or platform notifications.
-                  </p>
-                  <p>
-                    Continued use of the Platform after changes constitutes acceptance of the 
-                    modified Terms.
+                <div className="bg-[#4a2c2a] rounded-[32px] p-8 text-[#fffcf8]">
+                  <Shield className="w-8 h-8 mb-4 opacity-50" />
+                  <p className="font-medium leading-relaxed opacity-90">
+                    We employ military-grade encryption to ensure your personal taste profile and financial data 
+                    remain strictly between us. We never trade your details with third-party vendors.
                   </p>
                 </div>
               </section>
 
               {/* Contact Information */}
-              <section id="contact" className="mb-8">
-                <h2 className="text-2xl font-bold text-amber-900 mb-4">15. Contact Information</h2>
-                <div className="bg-amber-50 rounded-2xl p-6 border border-amber-200">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <h3 className="font-semibold text-amber-900 mb-3 flex items-center">
-                        <Mail className="w-5 h-5 mr-2" />
-                        Email Support
-                      </h3>
-                      <p className="text-amber-700">support@choconut.com</p>
+              <section id="contact" className="mb-8 scroll-mt-32">
+                <h2 className="text-2xl font-black text-[#4a2c2a] uppercase tracking-tight mb-8">Direct Correspondence</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="flex items-start space-x-4">
+                    <div className="w-10 h-10 rounded-xl bg-amber-900/5 flex items-center justify-center flex-shrink-0">
+                      <Mail className="w-5 h-5 text-[#4a2c2a]" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-amber-900 mb-3 flex items-center">
-                        <Phone className="w-5 h-5 mr-2" />
-                        Customer Care
-                      </h3>
-                      <p className="text-amber-700">+91-1800-123-4567</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-amber-900/40 mb-1">Electronic Mail</p>
+                      <p className="text-[#4a2c2a] font-bold">concierge@choconut.com</p>
                     </div>
                   </div>
-                  <div className="mt-4 pt-4 border-t border-amber-200">
-                    <p className="text-amber-700">
-                      For questions about these Terms, please contact our legal department at 
-                      legal@choconut.com
-                    </p>
+                  <div className="flex items-start space-x-4">
+                    <div className="w-10 h-10 rounded-xl bg-amber-900/5 flex items-center justify-center flex-shrink-0">
+                      <Phone className="w-5 h-5 text-[#4a2c2a]" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-amber-900/40 mb-1">Tele-Support</p>
+                      <p className="text-[#4a2c2a] font-bold">+91 1800 123 4567</p>
+                    </div>
                   </div>
                 </div>
               </section>
 
-              {/* Acceptance Section */}
-              <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-6 text-white text-center">
-                <h3 className="text-xl font-bold mb-2">Acceptance of Terms</h3>
-                <p className="opacity-90">
-                  By using our Platform, you acknowledge that you have read, understood, 
-                  and agree to be bound by these Terms and Conditions.
+              <div className="mt-16 pt-8 border-t border-amber-900/5 flex flex-col items-center">
+                <div className="w-12 h-1 bg-[#4a2c2a] rounded-full mb-6 opacity-20" />
+                <p className="text-center text-amber-900/40 text-[10px] font-black uppercase tracking-[0.4em]">
+                  End of Protocol • ChocoNut Artisan Collective
                 </p>
               </div>
+
             </div>
-          </div>
+          </main>
         </div>
       </div>
     </div>

@@ -1,13 +1,15 @@
+// src/pages/VerifyOTP.jsx
 import { useState, useEffect, useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ShieldCheck, ArrowRight, RotateCcw } from "lucide-react";
+import { ShieldCheck, ArrowRight, RotateCcw, Mail } from "lucide-react";
 import { toast } from "react-toastify";
 import api from "../api/axios";
 import { UserContext } from "../context/UserContext";
 import { setAccessToken } from "../api/auth";
+import { motion } from "framer-motion";
 
 export default function VerifyOTP() {
-  const {setCurrentUser} = useContext(UserContext)
+  const { setCurrentUser } = useContext(UserContext);
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
@@ -20,14 +22,13 @@ export default function VerifyOTP() {
   useEffect(() => {
     const emailFromState = location.state?.email;
     if (!emailFromState) {
-      toast.error("Session expired. Please signup again.");
+      toast.error("Session expired. Please restart the registration.");
       navigate("/signup");
       return;
     }
     setEmail(emailFromState);
   }, [location.state, navigate]);
 
-  // 2. Cooldown Timer Logic
   useEffect(() => {
     let interval;
     if (timer > 0) {
@@ -36,107 +37,117 @@ export default function VerifyOTP() {
     return () => clearInterval(interval);
   }, [timer]);
 
-  // 3. Resend OTP Function
   const handleResendOTP = async () => {
     if (timer > 0 || resendLoading) return;
-
     setResendLoading(true);
     try {
-      await api.post(`/otp/resend/`, {
-        email: email,
-        purpose: "signup",
-      });
-      toast.success("A fresh OTP has been sent!");
-      setTimer(60); // Increase cooldown to 60s after a resend
+      await api.post(`/otp/resend/`, { email, purpose: "signup" });
+      toast.success("A fresh code has been dispatched.");
+      setTimer(60);
     } catch (err) {
-      toast.error(err.response?.data?.detail || "Failed to resend OTP");
+      toast.error(err.response?.data?.detail || "Dispatched failed");
     } finally {
       setResendLoading(false);
     }
   };
 
-  // 4. Verify OTP Function
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
     if (otp.length !== 6) return;
-
     setLoading(true);
     try {
-      const res = await api.post(`/otp/verify/`, {
-        email: email,
-        otp,
-        purpose: "signup",
-      });
-      console.log(res.data)
-
+      const res = await api.post(`/otp/verify/`, { email, otp, purpose: "signup" });
       setAccessToken(res.data.access);
       setCurrentUser(res.data.user);
-      toast.success("Account verified! Welcome.");
-      navigate("/", { replace: true }); 
+      toast.success("Identity Confirmed. Welcome.");
+      navigate("/", { replace: true });
     } catch (err) {
-      toast.error(err.response?.data?.detail || "Invalid or expired OTP");
+      toast.error(err.response?.data?.detail || "Invalid or expired code");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 px-4">
-      <div className="max-w-md w-full">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
-              <ShieldCheck className="text-white w-6 h-6" />
-            </div>
+    <div className="min-h-screen flex items-center justify-center bg-[#fffcf8] px-4">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-md w-full"
+      >
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-white border border-amber-900/10 mb-6 shadow-sm">
+            <ShieldCheck className="text-[#4a2c2a] w-7 h-7" />
           </div>
-          <h1 className="text-3xl font-bold text-amber-900 mb-2">Verify OTP</h1>
-          <p className="text-amber-700">OTP sent to</p>
-          <p className="font-medium text-amber-900 break-all">{email}</p>
+          <h1 className="text-3xl font-black text-[#4a2c2a] uppercase tracking-tighter mb-3">
+            Identity Access
+          </h1>
+          <div className="flex items-center justify-center space-x-2 text-amber-900/50">
+            <Mail size={14} />
+            <p className="text-[11px] font-bold uppercase tracking-widest leading-none">
+              Sent to <span className="text-[#4a2c2a] lowercase italic">{email}</span>
+            </p>
+          </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl border border-amber-200 p-6">
-          <form onSubmit={handleVerifyOTP} className="space-y-6">
-            <input
-              type="text"
-              inputMode="numeric"
-              autoFocus
-              maxLength="6"
-              placeholder="Enter 6-digit OTP"
-              className="w-full text-center tracking-widest text-lg py-3 bg-amber-50 border border-amber-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none transition-all"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-              required
-            />
+        <div className="bg-white rounded-[40px] shadow-2xl shadow-[#4a2c2a]/10 border border-amber-900/5 p-8 md:p-10">
+          <form onSubmit={handleVerifyOTP} className="space-y-8">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-900/40 ml-1">
+                Security Code
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                autoFocus
+                maxLength="6"
+                placeholder="0 0 0 0 0 0"
+                className="w-full text-center tracking-[0.5em] text-2xl font-black py-5 bg-[#fffcf8] border border-amber-900/10 rounded-2xl focus:ring-2 focus:ring-[#4a2c2a]/10 focus:border-[#4a2c2a] outline-none transition-all text-[#4a2c2a] placeholder:text-amber-900/10"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                required
+              />
+            </div>
 
             <button
               type="submit"
               disabled={loading || otp.length !== 6}
-              className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-50 hover:shadow-lg transition-shadow"
+              className="group w-full bg-[#4a2c2a] text-[#fffcf8] py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] transition-all hover:bg-[#3d2422] disabled:opacity-30 shadow-xl shadow-[#4a2c2a]/20 flex items-center justify-center gap-3"
             >
-              {loading ? "Verifying..." : "Verify OTP"}
-              <ArrowRight size={18} />
+              {loading ? (
+                <div className="w-4 h-4 border-2 border-[#fffcf8]/30 border-t-[#fffcf8] rounded-full animate-spin" />
+              ) : (
+                <>
+                  Verify Account
+                  <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+                </>
+              )}
             </button>
           </form>
 
-          <div className="text-center mt-6">
+          <div className="text-center mt-8 pt-6 border-t border-amber-900/5">
             <button
               onClick={handleResendOTP}
               disabled={resendLoading || timer > 0}
-              className="text-amber-700 font-medium flex items-center justify-center gap-2 mx-auto disabled:text-amber-400 transition-colors"
+              className="text-[10px] font-black uppercase tracking-[0.2em] text-[#4a2c2a] disabled:text-amber-900/20 transition-colors flex items-center justify-center gap-2 mx-auto"
             >
               <RotateCcw
-                size={16}
-                className={resendLoading ? "animate-spin" : ""}
+                size={12}
+                className={`${resendLoading ? "animate-spin" : ""} ${timer > 0 ? "opacity-20" : ""}`}
               />
               {resendLoading
-                ? "Sending..."
+                ? "Dispatched..."
                 : timer > 0
-                  ? `Resend in ${timer}s`
-                  : "Resend OTP"}
+                  ? `Resend available in ${timer}s`
+                  : "Request new code"}
             </button>
           </div>
         </div>
-      </div>
+
+        <p className="text-center mt-8 text-[9px] font-bold text-amber-900/30 uppercase tracking-[0.2em]">
+          Protected by Choconut Vault Protocol
+        </p>
+      </motion.div>
     </div>
   );
 }

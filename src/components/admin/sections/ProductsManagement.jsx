@@ -1,6 +1,6 @@
 import { toast } from "react-toastify";
 // src/components/admin/sections/ProductsManagement.jsx
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import {
   Plus,
   Search,
@@ -19,25 +19,30 @@ export default function ProductsManagement() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const { products, deleteProduct } = useContext(AdminContext);
+  const { products, deleteProduct, fetchProducts, productPagination,productStats } =
+    useContext(AdminContext);
 
-  const lowStock = products.filter((item) => item.stock > 0 && item.stock < 10);
-  const outOfStock = products.filter((item) => item.stock === 0);
+  useEffect(() => {
+    let stock = "";
+    let premium = "";
 
-  const filteredProducts = products.filter((product) => {
-    if (selectedCategory === "outofstock") {
-      return product.stock === 0;
-    } else if (selectedCategory === "premium") {
-      return product.premium;
-    } else if (selectedCategory === "standard") {
-      return !product.premium;
-    } else {
-      return (
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        (selectedCategory === "all" || product.category === selectedCategory)
-      );
-    }
+    if (selectedCategory === "out") stock = "out";
+    if (selectedCategory === "low") stock = "low";
+    if (selectedCategory === "premium") premium = "true";
+    if (selectedCategory === "standard") premium = "false";
+
+    fetchProducts({
+    page: 1,
+    search: searchTerm,
+    category:
+      ["Nuts", "Chocolates"].includes(selectedCategory)
+        ? selectedCategory
+        : "all",
+    stock,
+    premium,
   });
+  }, [searchTerm, selectedCategory]);
+
 
   const getProductStatus = (stock) => {
     if (stock === 0) return "Out of Stock";
@@ -83,7 +88,7 @@ export default function ProductsManagement() {
         closeOnClick: false,
         draggable: false,
         position: "top-center",
-      }
+      },
     );
   };
 
@@ -112,19 +117,21 @@ export default function ProductsManagement() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-2xl border border-gray-200">
           <p className="text-sm text-gray-600">Total Products</p>
-          <p className="text-2xl font-bold text-gray-900">{products.length}</p>
+          <p className="text-2xl font-bold text-gray-900">
+            {productStats.total}
+          </p>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-gray-200">
           <p className="text-sm text-gray-600">Low Stock</p>
-          <p className="text-2xl font-bold text-amber-600">{lowStock.length}</p>
+          <p className="text-2xl font-bold text-amber-600">{productStats.low_stock}</p>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-gray-200">
           <p className="text-sm text-gray-600">Out of Stock</p>
-          <p className="text-2xl font-bold text-red-600">{outOfStock.length}</p>
+          <p className="text-2xl font-bold text-red-600">{productStats.out_of_stock}</p>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-gray-200">
           <p className="text-sm text-gray-600">Categories</p>
-          <p className="text-2xl font-bold text-gray-900">2</p>
+          <p className="text-2xl font-bold text-gray-900">{productStats.categories}</p>
         </div>
       </div>
 
@@ -149,9 +156,10 @@ export default function ProductsManagement() {
               className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors"
             >
               <option value="all">All Categories</option>
-              <option value="nuts">Nuts</option>
-              <option value="chocolates">Chocolates</option>
-              <option value="outofstock">Out Of Stock</option>
+              <option value="Nuts">Nuts</option>
+              <option value="Chocolates">Chocolates</option>
+              <option value="out">Out Of Stock</option>
+              <option value="low">Low Stock</option>
               <option value="premium">Premium</option>
               <option value="standard">Standard</option>
             </select>
@@ -169,7 +177,7 @@ export default function ProductsManagement() {
             "Type",
             "Actions",
           ]}
-          data={filteredProducts}
+          data={products}
           emptyMessage="No products found"
           renderRow={(product) => (
             <tr
@@ -179,7 +187,7 @@ export default function ProductsManagement() {
               <td className="py-3 px-4">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-                    <Package className="w-5 h-5 text-amber-600" />
+                    <img src={product.image} alt="" />
                   </div>
                   <div>
                     <p className="font-medium text-gray-900">{product.name}</p>
@@ -187,7 +195,9 @@ export default function ProductsManagement() {
                   </div>
                 </div>
               </td>
-              <td className="py-3 px-4 text-gray-600">{product.category}</td>
+              <td className="py-3 px-4 text-gray-600">
+                {product.category_name}
+              </td>
               <td className="py-3 px-4 font-medium text-gray-900">
                 {product.price}
               </td>
@@ -204,7 +214,7 @@ export default function ProductsManagement() {
               <td className="py-3 px-4">
                 <span
                   className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                    getProductStatus(product.stock)
+                    getProductStatus(product.stock),
                   )}`}
                 >
                   {getProductStatus(product.stock)}
@@ -232,7 +242,7 @@ export default function ProductsManagement() {
                     onClick={() =>
                       confirmToast(
                         "Are you sure you want to delete this product?",
-                        () => deleteProduct(product.id)
+                        () => deleteProduct(product.id),
                       )
                     }
                     className="p-1 text-red-600 hover:text-red-700 transition-colors"
@@ -245,6 +255,40 @@ export default function ProductsManagement() {
             </tr>
           )}
         />
+
+        <div className="flex justify-between items-center mt-4">
+          <button
+            disabled={!productPagination.previous}
+            onClick={() =>
+              fetchProducts({
+                page: productPagination.page - 1,
+                search: searchTerm,
+                category: selectedCategory,
+              })
+            }
+            className="px-4 py-2 bg-gray-100 rounded disabled:opacity-50"
+          >
+            Previous
+          </button>
+
+          <span className="text-sm text-gray-600">
+            Page {productPagination.page}
+          </span>
+
+          <button
+            disabled={!productPagination.next}
+            onClick={() =>
+              fetchProducts({
+                page: productPagination.page + 1,
+                search: searchTerm,
+                category: selectedCategory,
+              })
+            }
+            className="px-4 py-2 bg-gray-100 rounded disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );

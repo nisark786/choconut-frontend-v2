@@ -1,14 +1,14 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect, memo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../api/axios";
-import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowRight, Sparkles } from "lucide-react";
 import { UserContext } from "../context/UserContext";
 import { toast } from "react-toastify";
 import { setAccessToken, setLoginInProgress } from "../api/auth";
 import { GoogleLogin } from "@react-oauth/google";
+import { motion } from "framer-motion";
 
-
-export default function Login() {
+const Login = () => {
   const { currentUser, setCurrentUser, loadingAuth } = useContext(UserContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,11 +18,7 @@ export default function Login() {
 
   useEffect(() => {
     if (currentUser && !loadingAuth) {
-      if(currentUser.isAdmin){
-        navigate("/admin/dashboard")
-      }else{
-        navigate("/");
-      }
+      navigate(currentUser.isAdmin ? "/admin/dashboard" : "/");
     }
   }, [currentUser, loadingAuth, navigate]);
 
@@ -30,7 +26,6 @@ export default function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    
     const cleanEmail = email.trim().toLowerCase();
 
     if (!isValidEmail(cleanEmail)) {
@@ -42,21 +37,13 @@ export default function Login() {
 
     try {
       const res = await api.post("/login/", { email: cleanEmail, password });
-      
       setAccessToken(res.data.access);
       setCurrentUser(res.data.user);
-
-      toast.success("Welcome back to ChocoNut!");
+      toast.success("Welcome back to the collection!");
       navigate("/");
     } catch (err) {
       const status = err.response?.status;
-      if (status === 401) {
-        toast.error("Invalid email or password");
-      } else if (status === 400) {
-        toast.error("Please fill in all fields");
-      } else {
-        toast.error("Service unavailable. Please try again later.");
-      }
+      toast.error(status === 401 ? "Invalid credentials" : "Service temporarily unavailable");
     } finally {
       setLoginInProgress(false);
       setLoading(false);
@@ -64,24 +51,40 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 py-12 px-4">
-      <div className="max-w-md w-full">
-       
+    <div className="min-h-screen flex items-center justify-center bg-[#fffcf8] py-12 px-4 relative overflow-hidden">
+      {/* Decorative Background Elements */}
+      <div className="absolute top-[-10%] left-[-5%] w-64 h-64 bg-[#4a2c2a]/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-[-10%] right-[-5%] w-96 h-96 bg-amber-200/20 rounded-full blur-3xl" />
 
-        <div className="bg-white rounded-3xl shadow-2xl border border-amber-100 p-8">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-md w-full relative z-10"
+      >
+        {/* Header Section */}
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-[#4a2c2a] rounded-2xl shadow-xl mb-6 rotate-3">
+            <Sparkles className="w-8 h-8 text-amber-200" />
+          </div>
+          <h2 className="text-4xl font-black text-[#4a2c2a] tracking-tight">
+            Welcome <span className="italic font-serif text-amber-700">Back</span>
+          </h2>
+          <p className="mt-2 text-amber-900/60 font-medium">Step back into your world of indulgence.</p>
+        </div>
+
+        <div className="bg-white rounded-[40px] shadow-[0_32px_64px_-16px_rgba(74,44,42,0.15)] border border-amber-100/50 p-10 backdrop-blur-sm">
           <form onSubmit={handleLogin} className="space-y-6">
             {/* Email Field */}
-            <div>
-              <label className="block text-sm font-semibold text-amber-900 mb-2">
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-[0.2em] text-[#4a2c2a] ml-1">
                 Email Address
               </label>
               <div className="relative group">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-400 group-focus-within:text-amber-600 transition-colors" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-800/30 group-focus-within:text-[#4a2c2a] transition-colors" />
                 <input
                   type="email"
-                  autoComplete="email"
-                  placeholder="choconut@gmail.com"
-                  className="w-full pl-10 pr-4 py-3 bg-amber-50/50 border border-amber-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all placeholder:text-amber-300 text-amber-900"
+                  placeholder="name@luxury.com"
+                  className="w-full pl-12 pr-4 py-4 bg-[#fffcf8] border border-amber-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#4a2c2a]/5 focus:border-[#4a2c2a] transition-all text-[#4a2c2a] font-medium"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -90,22 +93,21 @@ export default function Login() {
             </div>
 
             {/* Password Field */}
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="text-sm font-semibold text-amber-900">
+            <div className="space-y-2">
+              <div className="flex justify-between items-center ml-1">
+                <label className="text-xs font-black uppercase tracking-[0.2em] text-[#4a2c2a]">
                   Password
                 </label>
-                <Link to="/forgot-password" title="Recover account" className="text-xs font-medium text-amber-600 hover:text-orange-600 transition-colors">
-                  Forgot Password?
+                <Link to="/forgot-password" size="sm" className="text-[10px] font-bold text-amber-700 hover:text-[#4a2c2a] transition-colors uppercase tracking-widest">
+                  Forgot?
                 </Link>
               </div>
               <div className="relative group">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-400 group-focus-within:text-amber-600 transition-colors" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-800/30 group-focus-within:text-[#4a2c2a] transition-colors" />
                 <input
                   type={showPassword ? "text" : "password"}
-                  autoComplete="current-password"
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-12 py-3 bg-amber-50/50 border border-amber-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-500 transition-all placeholder:text-amber-300 text-amber-900"
+                  className="w-full pl-12 pr-12 py-4 bg-[#fffcf8] border border-amber-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#4a2c2a]/5 focus:border-[#4a2c2a] transition-all text-[#4a2c2a] font-medium"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -113,7 +115,7 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-amber-400 hover:text-amber-600 transition-colors p-1"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-800/30 hover:text-[#4a2c2a] transition-colors"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -124,38 +126,35 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-amber-600 to-orange-600 text-white py-3.5 rounded-xl font-bold hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              className="w-full bg-[#4a2c2a] text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:bg-[#36201f] shadow-lg shadow-[#4a2c2a]/20 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center space-x-3"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
                   <span>Sign In</span>
-                  <ArrowRight className="w-5 h-5" />
+                  <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>
           </form>
 
           {/* Social Divider */}
-          <div className="relative my-8">
+          <div className="relative my-10">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-amber-100"></div>
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-amber-400 font-medium">Or continue with</span>
+            <div className="relative flex justify-center text-[10px] uppercase tracking-[0.3em] font-black">
+              <span className="px-4 bg-white text-amber-800/40">Or continue with</span>
             </div>
           </div>
 
-          {/* Google Login with Layout Shield */}
-          <div className="flex justify-center min-h-[44px]">
+          <div className="flex justify-center">
             <GoogleLogin
               onSuccess={async (credentialResponse) => {
                 try {
                   setLoginInProgress(true);
-                  const res = await api.post("/google/", {
-                    token: credentialResponse.credential,
-                  });
+                  const res = await api.post("/google/", { token: credentialResponse.credential });
                   setAccessToken(res.data.access);
                   setCurrentUser(res.data.user);
                   toast.success("Welcome back!");
@@ -166,7 +165,6 @@ export default function Login() {
                   setLoginInProgress(false);
                 }
               }}
-              onError={() => toast.error("Google login failed")}
               theme="outline"
               shape="pill"
               size="large"
@@ -174,19 +172,21 @@ export default function Login() {
           </div>
 
           {/* Signup Footer */}
-          <div className="mt-6 pt-2 border-t border-amber-50 text-center">
-            <p className="text-amber-600 text-sm mb-4">New to ChocoNut?</p>
+          <div className="mt-10 pt-8 border-t border-amber-50 text-center">
+            <p className="text-amber-900/40 text-xs font-bold uppercase tracking-widest mb-4">
+              New to the boutique?
+            </p>
             <Link
               to="/signup"
-              className="w-full flex items-center justify-center space-x-2 text-amber-800 font-bold py-3 px-4 rounded-xl border-2 border-amber-100 hover:bg-amber-50 transition-all"
+              className="inline-flex items-center text-[#4a2c2a] font-black text-xs uppercase tracking-[0.2em] border-b-2 border-amber-200 hover:border-[#4a2c2a] transition-all pb-1"
             >
-              <span>Create Account</span>
+              Create Account
             </Link>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
-}
+};
 
-
+export default memo(Login);

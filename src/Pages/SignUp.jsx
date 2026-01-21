@@ -1,12 +1,11 @@
-// src/pages/Signup.jsx
-import { useState, useEffect, useRef } from "react";
+import { useState, memo } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Eye, EyeOff, User, Mail, Lock, ArrowRight, Star } from "lucide-react";
+import { User, Mail, Lock, ArrowRight, Sparkles, ShieldCheck } from "lucide-react";
 import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { motion } from "framer-motion";
 import api from "../api/axios";
 
-export default function Signup() {
+const Signup = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,13 +25,13 @@ export default function Signup() {
 
       await api.post("/signup/", payload);
 
-      toast.success("Account created. Please verify your email.");
-      navigate("/verify-otp",{ state: { email: email.trim().toLowerCase() } }); 
+      toast.success("Welcome to the family! Please verify your email.");
+      navigate("/verify-otp", { state: { email: email.trim().toLowerCase() } });
     } catch (err) {
       toast.error(
         err.response?.data?.error ||
-          err.response?.data?.detail ||
-          "Signup failed"
+        err.response?.data?.detail ||
+        "Registration failed"
       );
     } finally {
       setLoading(false);
@@ -40,33 +39,42 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 py-8 px-4">
-      <div className="max-w-md w-full">
-        {/* Header */}
-        <div className="text-center mb-8">
-          
-          <h2 className="text-2xl font-bold text-amber-900 mb-2">
-            Create Your Account
+    <div className="min-h-screen flex items-center justify-center bg-[#fffcf8] py-12 px-4 relative overflow-hidden">
+      {/* Decorative Background Accents */}
+      <div className="absolute top-[-5%] right-[-5%] w-72 h-72 bg-[#4a2c2a]/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-[-5%] left-[-5%] w-72 h-72 bg-amber-200/20 rounded-full blur-3xl" />
+
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-md w-full relative z-10"
+      >
+        {/* Header Section */}
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-[#4a2c2a] rounded-2xl shadow-xl mb-6 -rotate-3">
+            <Sparkles className="w-7 h-7 text-amber-200" />
+          </div>
+          <h2 className="text-4xl font-black text-[#4a2c2a] tracking-tight">
+            Start Your <span className="italic font-serif text-amber-700">Journey</span>
           </h2>
-          <p className="text-amber-700">
-            Join us for sweet deals and delicious treats!
-          </p>
+          <p className="mt-2 text-amber-900/60 font-medium">Join our community of chocolate connoisseurs.</p>
         </div>
 
         {/* Signup Form */}
-        <div className="bg-white rounded-2xl shadow-xl border border-amber-200 p-6 sm:p-8">
-          <form onSubmit={handleSignup} className="space-y-5">
+        <div className="bg-white rounded-[40px] shadow-[0_32px_64px_-16px_rgba(74,44,42,0.12)] border border-amber-100/50 p-8 sm:p-10">
+          <form onSubmit={handleSignup} className="space-y-6">
+            
             {/* Name Field */}
-            <div>
-              <label className="block text-sm font-medium text-amber-900 mb-2">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-[0.25em] text-[#4a2c2a] ml-1">
                 Full Name
               </label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-amber-400" />
+              <div className="relative group">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-800/30 group-focus-within:text-[#4a2c2a] transition-colors" />
                 <input
                   type="text"
-                  placeholder="Enter your full name"
-                  className="w-full pl-10 pr-4 py-3 bg-amber-50 border border-amber-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 placeholder:text-amber-400 text-amber-900"
+                  placeholder="Theodore Cocoa"
+                  className="w-full pl-12 pr-4 py-4 bg-[#fffcf8] border border-amber-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#4a2c2a]/5 focus:border-[#4a2c2a] transition-all text-[#4a2c2a] font-medium"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
@@ -75,16 +83,16 @@ export default function Signup() {
             </div>
 
             {/* Email Field */}
-            <div>
-              <label className="block text-sm font-medium text-amber-900 mb-2">
-                Email
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-[0.25em] text-[#4a2c2a] ml-1">
+                Email Address
               </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-amber-400" />
+              <div className="relative group">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-800/30 group-focus-within:text-[#4a2c2a] transition-colors" />
                 <input
                   type="email"
-                  placeholder="choconut@gmail.com"
-                  className="w-full pl-10 pr-4 py-3 bg-amber-50 border border-amber-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 placeholder:text-amber-400 text-amber-900"
+                  placeholder="connoisseur@choconut.com"
+                  className="w-full pl-12 pr-4 py-4 bg-[#fffcf8] border border-amber-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#4a2c2a]/5 focus:border-[#4a2c2a] transition-all text-[#4a2c2a] font-medium"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -92,16 +100,17 @@ export default function Signup() {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-amber-900 mb-2">
+            {/* Password Field */}
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-[0.25em] text-[#4a2c2a] ml-1">
                 Password
               </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-amber-400" />
+              <div className="relative group">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-800/30 group-focus-within:text-[#4a2c2a] transition-colors" />
                 <input
                   type="password"
-                  placeholder="Create a password"
-                  className="w-full pl-10 pr-4 py-3 bg-amber-50 border border-amber-200 rounded-xl"
+                  placeholder="Min. 8 characters"
+                  className="w-full pl-12 pr-4 py-4 bg-[#fffcf8] border border-amber-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-[#4a2c2a]/5 focus:border-[#4a2c2a] transition-all text-[#4a2c2a] font-medium"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -113,44 +122,42 @@ export default function Signup() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white py-3 px-4 rounded-xl font-semibold hover:from-amber-600 hover:to-orange-600 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              className="w-full bg-[#4a2c2a] text-[#fffcf8] py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:bg-[#36201f] shadow-lg shadow-[#4a2c2a]/10 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center space-x-3"
             >
               {loading ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Creating Account...</span>
-                </>
+                <div className="w-5 h-5 border-2 border-[#fffcf8]/30 border-t-[#fffcf8] rounded-full animate-spin" />
               ) : (
                 <>
-                  <Star className="w-5 h-5" />
                   <span>Create Account</span>
-                  <ArrowRight className="w-5 h-5" />
+                  <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>
           </form>
 
-          {/* Divider */}
-          <div className="flex items-center my-6">
-            <div className="flex-1 border-t border-amber-200"></div>
-            <span className="px-3 text-amber-600 text-sm">
-              Already have an account?
-            </span>
-            <div className="flex-1 border-t border-amber-200"></div>
-          </div>
-
-          {/* Login Link */}
-          <div className="text-center">
+          {/* Login Redirection */}
+          <div className="mt-10 pt-8 border-t border-amber-50 text-center">
+            <p className="text-amber-900/40 text-[10px] font-black uppercase tracking-[0.3em] mb-4">
+              Already a member?
+            </p>
             <Link
               to="/login"
-              className="inline-flex items-center space-x-2 text-amber-700 hover:text-amber-900 font-medium transition-colors duration-200 border border-amber-300 hover:border-amber-500 px-6 py-2 rounded-lg bg-amber-50/50"
+              className="inline-flex items-center space-x-2 text-[#4a2c2a] font-black text-xs uppercase tracking-[0.2em] hover:text-amber-800 transition-colors"
             >
-              <span>Sign in to your account</span>
-              <ArrowRight className="w-4 h-4" />
+              <span>Sign In Instead</span>
+              <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
         </div>
-      </div>
+
+        {/* Security Trust Badge */}
+        <div className="mt-8 flex items-center justify-center space-x-2 text-amber-900/30">
+          <ShieldCheck size={14} />
+          <span className="text-[10px] font-bold uppercase tracking-widest">Secure Artisan Platform</span>
+        </div>
+      </motion.div>
     </div>
   );
-}
+};
+
+export default memo(Signup);

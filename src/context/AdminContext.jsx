@@ -7,6 +7,17 @@ import { isLoginInProgress } from "../api/auth";
 export const AdminContext = createContext();
 
 export default function AdminProvider({ children }) {
+const [dashboard, setDashboard] = useState({
+  stats: {
+    total_revenue: 0,
+    total_orders: 0,
+    total_products: 0,
+    total_users: 0,
+  },
+  monthly_revenue: [],
+  order_status: [],
+  top_products: [],
+});
   const [users, setUsers] = useState([]);
   const [userPagination, setUserPagination] = useState({
     count: 0,
@@ -30,7 +41,20 @@ export default function AdminProvider({ children }) {
     page: 1,
   });
   const [orderStats, setOrderStats] = useState({});
+
   const [products, setProducts] = useState([]);
+  const [productPagination, setProductPagination] = useState({
+    count: 0,
+    next: null,
+    previous: null,
+    page: 1,
+  });
+  const [productStats, setProductStats] = useState({
+  total: 0,
+  low_stock: 0,
+  out_of_stock: 0,
+  categories: 0,
+});
 
   const [editingOrderId, setEditingOrderId] = useState(null);
   const [updatedStatus, setUpdatedStatus] = useState("");
@@ -41,18 +65,14 @@ export default function AdminProvider({ children }) {
       if (isLoginInProgress()) {
         await new Promise((r) => setTimeout(r, 300));
       }
-
       try {
         await bootstrapAuth();
+        await fetchDashboard();
         await fetchUsers();
         await fetchOrders();
-
-        const [productsRes] = await Promise.all([api.get("admin/products/")]);
-
-        setProducts(productsRes.data.results || []);
+        await fetchProducts();
       } catch (err) {
         if (err.response?.status !== 401 && err.response?.status !== 403) {
-          console.error("Admin bootstrap failed:", err);
           toast.error("Failed to load admin data");
         }
       } finally {
@@ -62,6 +82,33 @@ export default function AdminProvider({ children }) {
 
     initAdmin();
   }, []);
+
+  const fetchProducts = async ({
+  page = 1,
+  search = "",
+  category = "all",
+  stock = "",
+  premium = "",
+} = {}) => {
+  const params = { page };
+
+  if (search) params.search = search;
+  if (category !== "all") params.category = category;
+  if (stock) params.stock = stock;
+  if (premium !== "") params.premium = premium;
+
+  const res = await api.get("admin/products/", { params });
+
+  setProducts(res.data.results.products);
+  setProductStats(res.data.results.stats);
+  setProductPagination({
+    count: res.data.count,
+    next: res.data.next,
+    previous: res.data.previous,
+    page,
+  });
+};
+
 
   const fetchUsers = async ({ page = 1, search = "", status = "all" } = {}) => {
     const params = {
@@ -113,7 +160,7 @@ export default function AdminProvider({ children }) {
   const addProduct = async (newProduct) => {
     try {
       const res = await api.post(`admin/products/`, newProduct);
-      setProducts((prev) => [...prev, res.data]);
+      await fetchProducts();
     } catch (err) {
       console.error("Add product error:", err);
     }
@@ -128,10 +175,16 @@ export default function AdminProvider({ children }) {
     }
   };
 
+  const getProductById = async (id) => {
+  const res = await api.get(`/admin/products/${id}/`);
+  return res.data;
+};
+
+
   const updateProduct = async (id, updatedData) => {
     try {
-      const res = await api.put(`admin/products/${id}/`, updatedData);
-      setProducts((prev) => prev.map((p) => (p.id === id ? res.data : p)));
+      const res = await api.patch(`admin/products/${id}/`, updatedData);
+      await fetchProducts();
     } catch (error) {
       console.error("Error updating product:", error);
       throw error;
@@ -139,27 +192,26 @@ export default function AdminProvider({ children }) {
   };
 
   const handleSaveStatus = async ({ orderId, page, search, status }) => {
-  try {
-    await api.patch(`admin/orders/${orderId}/`, {
-      order_status: updatedStatus,
-    });
+    try {
+      await api.patch(`admin/orders/${orderId}/`, {
+        order_status: updatedStatus,
+      });
 
-    setOrders((prev) =>
-      prev.map((o) =>
-        o.id === orderId ? { ...o, order_status: updatedStatus } : o
-      )
-    );
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.id === orderId ? { ...o, order_status: updatedStatus } : o,
+        ),
+      );
 
-    await fetchOrders({ page, search, status });
+      await fetchOrders({ page, search, status });
 
-    toast.success("Order status updated!");
-  } catch (err) {
-    toast.error("Failed to update order!");
-  } finally {
-    setEditingOrderId(null);
-  }
-};
-
+      toast.success("Order status updated!");
+    } catch (err) {
+      toast.error("Failed to update order!");
+    } finally {
+      setEditingOrderId(null);
+    }
+  };
 
   const userAction = async (userId, action) => {
     try {
@@ -207,10 +259,10 @@ export default function AdminProvider({ children }) {
       });
 
       await fetchUsers({
-      page: userPagination.page,
-      search: "",
-      status: "all",
-    });
+        page: userPagination.page,
+        search: "",
+        status: "all",
+      });
 
       toast.success(res.data.message || "Action applied");
     } catch (err) {
@@ -218,7 +270,14 @@ export default function AdminProvider({ children }) {
     }
   };
 
+  const fetchDashboard = async () => {
+  const res = await api.get("/admin/dashboard/");
+  setDashboard(res.data);
+};
+
+
   const value = {
+    dashboard,
     users,
     userStats,
     userPagination,
@@ -228,8 +287,12 @@ export default function AdminProvider({ children }) {
     orderPagination,
     fetchOrders,
     products,
+    productStats,
+    productPagination,
+    fetchProducts,
     addProduct,
     deleteProduct,
+    getProductById,
     updateProduct,
     handleSaveStatus,
     setEditingOrderId,

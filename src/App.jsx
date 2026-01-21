@@ -1,156 +1,103 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Home from "./Pages/Home";
-import Login from "./Pages/Login";
-import ProductDetails from "./Pages/ProductDetails";
-import Shops from "./Pages/Shops";
-import Cart from "./Pages/Cart";
-import Wishlist from "./Pages/Wishlist";
-import Profile from "./Pages/Profile";
-import OrderConfirmation from "./Pages/OrderConfirmation";
-import ShipmentPage from "./Pages/ShipmentPage";
-import PaymentPage from "./Pages/PaymentPage";
-import ProtectedRoute from "./components/ProtectedRoutes";
-import SignUp from "./Pages/SignUp";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import OrdersPage from "./Pages/OrdersPage";
-import NotFound from "./Pages/NotFound";
-import AddFeedback from "./Pages/AddFeedback";
-import ChangePassword from "./Pages/ChangePassword";
-import TermsAndConditions from "./Pages/TermsAndConditions";
+
+// Components
 import ScrollToTop from "./components/ScrolToTop";
+import ProtectedRoute from "./components/ProtectedRoutes";
 import AdminRoutes from "./components/routes/AdminRoutes";
 import AdminLayout from "./components/admin/AdminLayout";
 import UserLayout from "./components/routes/UserLayout";
-import DashboardOverview from "./components/admin/sections/DashboardOverview";
-import ProductsManagement from "./components/admin/sections/ProductsManagement";
-import OrdersManagement from "./components/admin/sections/OrdersManagement";
-import AddProduct from "./components/admin/pages/AddProduct";
-import EditProduct from "./components/admin/pages/EditProduct";
-import UsersManagement from "./components/admin/sections/UsersManagement";
-import UserDetails from "./components/admin/pages/UserDetails";
-import VerifyOTP from "./Pages/OTPVerify";
+import PageLoader from "./components/ui/PageLoader"; // Create a sleek progress bar
+
+// Lazy Load Pages (Optimization: Code Splitting)
+const Home = lazy(() => import("./Pages/Home"));
+const Login = lazy(() => import("./Pages/Login"));
+const SignUp = lazy(() => import("./Pages/SignUp"));
+const ProductDetails = lazy(() => import("./Pages/ProductDetails"));
+const Shops = lazy(() => import("./Pages/Shops"));
+const Cart = lazy(() => import("./Pages/Cart"));
+const Wishlist = lazy(() => import("./Pages/Wishlist"));
+const Profile = lazy(() => import("./Pages/Profile"));
+const OrderConfirmation = lazy(() => import("./Pages/OrderConfirmation"));
+const ShipmentPage = lazy(() => import("./Pages/ShipmentPage"));
+const PaymentPage = lazy(() => import("./Pages/PaymentPage"));
+const OrdersPage = lazy(() => import("./Pages/OrdersPage"));
+const AddFeedback = lazy(() => import("./Pages/AddFeedback"));
+const ChangePassword = lazy(() => import("./Pages/ChangePassword"));
+const VerifyOTP = lazy(() => import("./Pages/OTPVerify"));
+const NotFound = lazy(() => import("./Pages/NotFound"));
+const TermsAndConditions = lazy(() => import("./Pages/TermsAndConditions"));
+
+// Admin Sections
+const DashboardOverview = lazy(() => import("./components/admin/sections/DashboardOverview"));
+const ProductsManagement = lazy(() => import("./components/admin/sections/ProductsManagement"));
+const OrdersManagement = lazy(() => import("./components/admin/sections/OrdersManagement"));
+const UsersManagement = lazy(() => import("./components/admin/sections/UsersManagement"));
+const AddProduct = lazy(() => import("./components/admin/pages/AddProduct"));
+const EditProduct = lazy(() => import("./components/admin/pages/EditProduct"));
+const UserDetails = lazy(() => import("./components/admin/pages/UserDetails"));
 
 function App() {
-  
-
   return (
     <Router>
       <ScrollToTop />
-      <Routes>
-        <Route element={<AdminRoutes />}>
-          <Route path="/admin/*" element={<AdminLayout />}>
-            <Route index element={<DashboardOverview />} />
-            <Route path="dashboard" element={<DashboardOverview />} />
-            <Route path="products" element={<ProductsManagement />} />
-            <Route path="orders" element={<OrdersManagement />} />
-            <Route path="users" element={<UsersManagement />} />
-            <Route path="products/add" element={<AddProduct />} />
-            <Route path="products/:id/edit" element={<EditProduct />} />
-            <Route path="users/:id" element={<UserDetails />} />
+      {/* Suspense handles the loading state for lazy components */}
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          
+          {/* 1. ADMIN ROUTES GROUP */}
+          <Route element={<AdminRoutes />}>
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<DashboardOverview />} />
+              <Route path="dashboard" element={<DashboardOverview />} />
+              <Route path="products" element={<ProductsManagement />} />
+              <Route path="products/add" element={<AddProduct />} />
+              <Route path="products/:id/edit" element={<EditProduct />} />
+              <Route path="orders" element={<OrdersManagement />} />
+              <Route path="users" element={<UsersManagement />} />
+              <Route path="users/:id" element={<UserDetails />} />
+            </Route>
           </Route>
-        </Route>
 
-
-        <Route element={<UserLayout />}>
-            <Route path="/login" element={<Login />} />
+          {/* 2. PUBLIC & USER ROUTES GROUP */}
+          <Route element={<UserLayout />}>
+            {/* Public Routes */}
             <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/verify-otp" element={<VerifyOTP />} />
             <Route path="/product/:id" element={<ProductDetails />} />
             <Route path="/shops" element={<Shops />} />
-            <Route path="/verify-otp" element={<VerifyOTP />} />
+            <Route path="/termsandconditions" element={<TermsAndConditions />} />
 
+            {/* Private User Routes (Authenticated Only) */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/wishlist" element={<Wishlist />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/orders" element={<OrdersPage />} />
+              <Route path="/payment" element={<PaymentPage />} />
+              <Route path="/shipment" element={<ShipmentPage />} />
+              <Route path="/change-password" element={<ChangePassword />} />
+              <Route path="/product/:id/review" element={<AddFeedback />} />
+              <Route path="/confirmation/:orderId" element={<OrderConfirmation />} />
+            </Route>
 
+            {/* 404 Route */}
+            <Route path="*" element={<NotFound />} />
+          </Route>
 
+        </Routes>
+      </Suspense>
 
-
-          <Route
-            path="/orders"
-            element={
-              <ProtectedRoute>
-                <OrdersPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="product/:id/review"
-            element={
-              <ProtectedRoute>
-                <AddFeedback />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="change-password"
-            element={
-              <ProtectedRoute>
-                <ChangePassword />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/termsandconditions" element={<TermsAndConditions />} />
-          <Route path="*" element={<NotFound />} />
-          <Route
-            path="/cart"
-            element={
-              <ProtectedRoute>
-                <Cart />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/wishlist"
-            element={
-              <ProtectedRoute>
-                <Wishlist />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/payment"
-            element={
-              <ProtectedRoute>
-                <PaymentPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/shipment"
-            element={
-              <ProtectedRoute>
-                <ShipmentPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/confirmation/:orderId"
-            element={
-              <ProtectedRoute>
-                <OrderConfirmation />
-              </ProtectedRoute>
-            }
-          />
-
-
-        </Route>
-      </Routes>
-          <ToastContainer
-            position="top-center"
-            autoClose={3000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            pauseOnHover
-            draggable
-          />
+      <ToastContainer
+        position="top-center"
+        autoClose={3000}
+        theme="colored" // Modern 2026 look
+        hideProgressBar
+      />
     </Router>
   );
 }

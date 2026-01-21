@@ -1,17 +1,36 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation, Outlet } from "react-router-dom"; // Added Outlet
 import { useContext } from "react";
 import { UserContext } from "../context/UserContext";
+import { motion } from "framer-motion";
 
-export default function ProtectedRoute({ children }) {
+export default function ProtectedRoute() { // Removed {children}
   const { currentUser, loadingAuth } = useContext(UserContext);
+  const location = useLocation();
 
   if (loadingAuth) {
-    return null; // or spinner
+    return (
+      <div className="min-h-screen bg-[#fffcf8] flex flex-col items-center justify-center">
+        <motion.div 
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+          className="w-12 h-12 border-4 border-amber-200 border-t-[#4a2c2a] rounded-full"
+        />
+      </div>
+    );
   }
 
   if (!currentUser) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  return children;
+  // Use Outlet instead of children because it's a layout route in App.js
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="bg-[#fffcf8] min-h-screen"
+    >
+      <Outlet /> 
+    </motion.div>
+  );
 }

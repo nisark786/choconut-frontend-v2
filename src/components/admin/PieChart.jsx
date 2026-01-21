@@ -1,17 +1,13 @@
-import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 
-export default function OrderStatusChart({ orders }) {
-  // Count orders by status
-  const statusCounts = orders.reduce((acc, order) => {
-    acc[order.order_status] = (acc[order.order_status] || 0) + 1;
-    return acc;
-  }, {});
+export default function OrderStatusChart({ data }) {
 
   // Convert counts to chart-friendly format
-  const chartData = Object.keys(statusCounts).map((status) => ({
-    name: status,
-    value: statusCounts[status],
+  const chartData = data.map((item) => ({
+    name: item.order_status,
+    value: item.count,
   }));
+
 
   // Colors for each status
   const COLORS = {

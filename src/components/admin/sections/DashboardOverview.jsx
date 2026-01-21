@@ -15,74 +15,32 @@ import { AdminContext } from "../../../context/AdminContext";
 import { useContext } from "react";
 
 
-export default function DashboardOverview() {
-  const { orders, products, users, userCount } = useContext(AdminContext);
-  const totalRevenue = orders.reduce((acc, item) => {
-    return acc + item.total;
-  }, 0);
+export default function   DashboardOverview() {
+  const { dashboard } = useContext(AdminContext);
+  const { stats, monthly_revenue, order_status, top_products } = dashboard;
 
-  const monthlyRevenue = Array(12).fill(0);
-
-  orders.forEach((order) => {
-    const month = new Date(order.created_at).getMonth();
-    monthlyRevenue[month] += order.total;
-  });
-
-  const revenueData = monthlyRevenue.map((rev, idx) => ({
-    month: [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ][idx],
-    revenue: rev,
-  }));
-
-
-  const topProducts = products.map(p => {
-  const totalSales = orders.reduce((sum, o) => {
-    if (!o.items) return sum;
-    const item = o.items.find(i => i.product === p.id);
-    return sum + (item ? item.qty : 0); 
-  }, 0);
-
-  return { name: p.name, sales: totalSales };
-})
-  .sort((a, b) => b.sales - a.sales)
-  .slice(0, 5);
-
-
-
-  const stats = [
+  const cards = [
     {
       title: "Total Revenue",
-      value: totalRevenue,
+      value: stats.total_revenue,
       icon: DollarSign,
       color: "bg-green-500",
     },
     {
       title: "Total Orders",
-      value: orders.length,
+      value: stats.total_orders,
       icon: ShoppingCart,
       color: "bg-blue-500",
     },
     {
       title: "Total Products",
-      value: products.length,
+      value: stats.total_products,
       icon: Package,
       color: "bg-amber-500",
     },
     {
       title: "Total Users",
-      value: userCount,
+      value: stats.total_users,
       icon: Users,
       color: "bg-purple-500",
     },
@@ -91,7 +49,7 @@ export default function DashboardOverview() {
     <div className="space-y-6">
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
+        {cards.map((stat, index) => (
           <StatsCard key={index} {...stat} />
         ))}
       </div>
@@ -100,7 +58,7 @@ export default function DashboardOverview() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ChartContainer title="Revenue Overview">
           <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={revenueData}>
+            <BarChart data={monthly_revenue}>
               <XAxis dataKey="month" />
               <YAxis />
               <Tooltip />
@@ -109,7 +67,7 @@ export default function DashboardOverview() {
           </ResponsiveContainer>
         </ChartContainer>
 
-        <OrderStatusChart orders={orders} />
+        <OrderStatusChart data={order_status} />
       </div>
 
  
@@ -117,7 +75,7 @@ export default function DashboardOverview() {
           <ChartContainer title="Top Selling Products">
             <ResponsiveContainer width="100%" height={300}>
               <BarChart
-                data={topProducts}
+                data={top_products}
                 margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
               >
                 <XAxis dataKey="name" />

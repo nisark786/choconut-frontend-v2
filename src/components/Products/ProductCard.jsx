@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import { Heart, ShoppingCart } from "lucide-react";
-import { useContext, useState } from "react";
+import { Heart, ShoppingCart, Sparkles } from "lucide-react";
+import { useContext, useState, memo } from "react";
 import { UserContext } from "../../context/UserContext";
 import { requireLogin } from "../../helpers/userHelpers";
 import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { motion} from "framer-motion";
 
-export default function ProductCard({ product }) {
+const ProductCard = ({ product }) => {
   if (!product) return null;
 
   const navigate = useNavigate();
@@ -25,30 +25,22 @@ export default function ProductCard({ product }) {
   const inWishlist = wishlist.some((item) => item.id === product.id);
   const isOutOfStock = product.stock === 0;
 
-  const goToDetails = () => {
-    navigate(`/product/${product.id}`);
-  };
-
   const handleCart = async (e) => {
     e.stopPropagation();
     if (!requireLogin(currentUser, navigate)) return;
-
-    if (isOutOfStock) {
-      toast.error("Product is out of stock!");
-      return;
-    }
+    if (isOutOfStock) return toast.error("Selection currently unavailable");
 
     setActionLoading(true);
     try {
       if (inCart) {
         await removeFromCart(product.id);
-        toast.info("Removed from cart!");
+        toast.info("Removed from your collection");
       } else {
         await addToCart(product.id);
-        toast.success("Added to cart!");
+        toast.success("Added to your collection");
       }
     } catch {
-      toast.error("Operation failed. Please try again.");
+      toast.error("An error occurred. Please try again.");
     } finally {
       setActionLoading(false);
     }
@@ -57,93 +49,103 @@ export default function ProductCard({ product }) {
   const handleWishlist = async (e) => {
     e.stopPropagation();
     if (!requireLogin(currentUser, navigate)) return;
-
     setActionLoading(true);
     try {
       await toggleWishlist(product);
-      
     } catch {
-      toast.error("Operation failed. Please try again.");
+      toast.error("An error occurred.");
     } finally {
       setActionLoading(false);
     }
   };
 
   return (
-    <div
-      onClick={goToDetails}
-      className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl border border-amber-200 overflow-hidden transition-all duration-300 hover:scale-105 cursor-pointer relative"
+    <motion.div
+      whileHover={{ y: -8 }}
+      onClick={() => navigate(`/product/${product.id}`)}
+      className="group bg-[#fffcf8] rounded-[32px] border border-amber-900/5 overflow-hidden transition-all duration-500 hover:shadow-[0_20px_50px_rgba(74,44,42,0.12)] cursor-pointer relative flex flex-col h-full"
     >
-      {/* Product Image */}
-      <div className="relative w-full h-56 overflow-hidden">
+      {/* Image Container with Custom Mask */}
+      <div className="relative w-full h-64 overflow-hidden isolate">
         <img
           src={product.image}
           alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           loading="lazy"
         />
+        
+        {/* Subtle Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#4a2c2a]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+        {/* Premium Badge */}
+        {product.premium && (
+          <div className="absolute top-4 left-4 bg-[#4a2c2a] backdrop-blur-md border border-white/20 text-amber-200 px-3 py-1.5 rounded-full flex items-center space-x-1.5 shadow-lg">
+            <Sparkles size={12} className="animate-pulse" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Premium</span>
+          </div>
+        )}
+
         {isOutOfStock && (
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white font-bold text-lg">
-            Out of Stock
+          <div className="absolute inset-0 bg-[#4a2c2a]/60 backdrop-blur-[2px] flex items-center justify-center">
+            <span className="text-[#fffcf8] font-black uppercase tracking-widest text-sm border-2 border-[#fffcf8] px-4 py-2">
+              Sold Out
+            </span>
           </div>
         )}
       </div>
 
-      {/* Product Info */}
-      <div className="p-4">
-        <h3 className="font-semibold text-lg text-amber-900 mb-1">
-          {product.name}
-        </h3>
-        <p className="text-amber-700 text-sm mb-2">{product.category}</p>
-        <div className="flex items-center justify-between">
-          <span className="font-bold text-amber-900">₹{product.price}</span>
-          {product.premium && (
-            <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-xl">
-              Premium
-            </span>
-          )}
+      {/* Content Area */}
+      <div className="p-6 flex flex-col flex-grow">
+        <div className="flex justify-between items-start mb-2">
+          <div>
+            <p className="text-amber-800/60 text-[10px] font-black uppercase tracking-[0.2em] mb-1">
+              {product.category}
+            </p>
+            <h3 className="font-bold text-xl text-[#4a2c2a] leading-tight group-hover:text-amber-800 transition-colors">
+              {product.name}
+            </h3>
+          </div>
         </div>
-      </div>
 
-      {/* Action Buttons */}
-      <div className="flex items-center justify-between space-x-2 p-4">
+        <div className="mt-auto pt-4 flex items-center justify-between">
+          <span className="text-2xl font-black text-[#4a2c2a]">
+            ₹{product.price}
+          </span>
+          
+          <button
+            onClick={handleWishlist}
+            className={`p-3 rounded-2xl transition-all duration-300 ${
+              inWishlist 
+              ? "bg-rose-50 text-rose-500" 
+              : "bg-amber-50 text-amber-800/40 hover:bg-amber-100"
+            }`}
+          >
+            <Heart size={20} className={inWishlist ? "fill-current" : ""} />
+          </button>
+        </div>
+
+        {/* Integrated Action Button */}
         <button
           onClick={handleCart}
           disabled={isOutOfStock || actionLoading}
-          className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 ${
+          className={`mt-4 w-full py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all duration-500 flex items-center justify-center space-x-2 shadow-sm ${
             inCart
-              ? "bg-red-500 hover:bg-red-600 text-white"
-              : "bg-gradient-to-r from-amber-500 to-amber-600 text-white"
-          }`}
+              ? "bg-rose-500 text-white shadow-rose-200"
+              : "bg-[#4a2c2a] text-[#fffcf8] hover:bg-[#36201f] shadow-black/10"
+          } disabled:opacity-30 disabled:grayscale`}
         >
           {actionLoading ? (
             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
           ) : (
             <>
-              <ShoppingCart className="w-4 h-4" />
-              <span className="text-sm">
-                {inCart ? "Remove" : "Add to Cart"}
-              </span>
+              <ShoppingCart size={16} />
+              <span>{inCart ? "Remove Selection" : "Add to Boutique"}</span>
             </>
           )}
         </button>
-
-        <button
-          onClick={handleWishlist}
-          disabled={actionLoading}
-          className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-200 border-2 ${
-            inWishlist
-              ? "bg-pink-50 border-pink-200 text-pink-500"
-              : "bg-amber-50 border-amber-200 text-amber-500"
-          }`}
-        >
-          {actionLoading ? (
-            <div className="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <Heart className={`w-5 h-5 ${inWishlist ? "fill-pink-500" : ""}`} />
-          )}
-        </button>
       </div>
-    </div>
+    </motion.div>
   );
-}
+};
+
+export default memo(ProductCard);

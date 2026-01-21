@@ -1,15 +1,18 @@
+// src/pages/OrderConfirmation.jsx
 import { useEffect, useState, useContext } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "../api/axios";
 import { UserContext } from "../context/UserContext";
 import {
-  CheckCircle,
+  CheckCircle2,
   Package,
   Truck,
-  Clock,
   Home,
   ShoppingBag,
+  Gift,
+  ArrowRight
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 const getEstimatedDelivery = (createdAt) => {
   const date = new Date(createdAt);
@@ -37,123 +40,135 @@ export default function OrderConfirmation() {
       const res = await api.get(`/orders/${orderId}/`);
       setOrder(res.data);
     } catch (err) {
-      console.error("Failed to load order", err);
+      console.error("Order retrieval error", err);
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) return null;
-  if (!order) return <p className="text-center">Order not found</p>;
+  if (loading) return (
+    <div className="min-h-screen bg-[#fffcf8] flex items-center justify-center">
+      <div className="w-8 h-8 border-2 border-[#4a2c2a]/10 border-t-[#4a2c2a] rounded-full animate-spin" />
+    </div>
+  );
+
+  if (!order) return (
+    <div className="min-h-screen bg-[#fffcf8] flex items-center justify-center text-[#4a2c2a] font-bold uppercase tracking-widest text-xs">
+      Manifest Not Found
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 py-8 px-4">
-      <div className="max-w-2xl mx-auto">
-        {/* Success Header */}
-        <div className="text-center mb-8">
-          <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-12 h-12 text-white" />
-          </div>
+    <div className="min-h-screen bg-[#fffcf8] py-20 px-4">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="max-w-2xl mx-auto"
+      >
+        {/* Success Branding */}
+        <div className="text-center mb-12">
+          <motion.div 
+            initial={{ rotate: -10, scale: 0 }}
+            animate={{ rotate: 0, scale: 1 }}
+            transition={{ type: "spring", damping: 12 }}
+            className="w-20 h-20 bg-white border border-amber-900/10 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-xl shadow-[#4a2c2a]/5"
+          >
+            <CheckCircle2 className="w-10 h-10 text-[#4a2c2a]" />
+          </motion.div>
 
-          <h1 className="text-4xl font-bold text-amber-900 mb-3">
-            Order Confirmed!
+          <h1 className="text-4xl md:text-5xl font-black text-[#4a2c2a] tracking-tighter mb-4">
+            Order Confirmed
           </h1>
 
-          <p className="text-amber-700 text-lg">
-            Thank you {currentUser?.name}! Your order has been placed successfully.
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-amber-900/40 max-w-sm mx-auto leading-relaxed">
+            Gratitude, <span className="text-[#4a2c2a]">{currentUser?.name || 'Patron'}</span>. Your selection has been meticulously recorded.
           </p>
         </div>
 
-        {/* Order Summary */}
-        <div className="bg-white rounded-2xl shadow-xl border border-amber-200 p-6 mb-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Order Details */}
-            <div>
-              <h3 className="font-semibold mb-4 flex items-center gap-2">
-                <Package className="w-5 h-5 text-amber-600" />
-                Order Details
-              </h3>
+        {/* The Receipt Card */}
+        <div className="bg-white rounded-[40px] shadow-2xl shadow-[#4a2c2a]/10 border border-amber-900/5 overflow-hidden mb-10">
+          <div className="p-8 md:p-12">
+            <div className="grid md:grid-cols-2 gap-12">
+              
+              {/* Manifest Details */}
+              <div className="space-y-6">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#4a2c2a] flex items-center gap-2">
+                  <Package className="w-3.5 h-3.5" />
+                  Transaction Summary
+                </h3>
 
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span>Order ID</span>
-                  <span className="font-mono font-semibold">
-                    #{order.id}
-                  </span>
+                <div className="space-y-4">
+                  <div className="flex justify-between border-b border-amber-900/5 pb-2">
+                    <span className="text-[10px] font-bold text-amber-900/40 uppercase tracking-widest">Ref. Code</span>
+                    <span className="text-[11px] font-black text-[#4a2c2a]">#{order.id}</span>
+                  </div>
+
+                  <div className="flex justify-between border-b border-amber-900/5 pb-2">
+                    <span className="text-[10px] font-bold text-amber-900/40 uppercase tracking-widest">Total Value</span>
+                    <span className="text-lg font-black text-[#4a2c2a]">₹{order.total_amount}</span>
+                  </div>
                 </div>
+              </div>
 
-                <div className="flex justify-between">
-                  <span>Order Date</span>
-                  <span>
-                    {new Date(order.created_at).toLocaleDateString()}
-                  </span>
-                </div>
+              {/* Logistic Details */}
+              <div className="space-y-6">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#4a2c2a] flex items-center gap-2">
+                  <Truck className="w-3.5 h-3.5" />
+                  Logistics
+                </h3>
 
-                <div className="flex justify-between">
-                  <span>Total Amount</span>
-                  <span className="font-bold text-amber-600">
-                    ₹{order.total_amount}
-                  </span>
+                <div className="space-y-4">
+                  <div className="flex justify-between border-b border-amber-900/5 pb-2">
+                    <span className="text-[10px] font-bold text-amber-900/40 uppercase tracking-widest">Current Status</span>
+                    <span className="text-[9px] font-black bg-[#4a2c2a] text-[#fffcf8] px-2 py-1 rounded-md uppercase">
+                      {order.order_status}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between border-b border-amber-900/5 pb-2">
+                    <span className="text-[10px] font-bold text-amber-900/40 uppercase tracking-widest">Arrival Date</span>
+                    <span className="text-[11px] font-black text-[#4a2c2a]">{getEstimatedDelivery(order.created_at)}</span>
+                  </div>
                 </div>
               </div>
             </div>
-
-            {/* Delivery */}
-            <div>
-              <h3 className="font-semibold mb-4 flex items-center gap-2">
-                <Truck className="w-5 h-5 text-amber-600" />
-                Delivery & Payment
-              </h3>
-
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span>Status</span>
-                  <span className="bg-amber-100 px-3 py-1 rounded-full text-sm">
-                    {order.order_status}
-                  </span>
-                </div>
-
-                <div className="flex justify-between">
-                  <span>Est. Delivery</span>
-                  <span>{getEstimatedDelivery(order.created_at)}</span>
-                </div>
-
-                <div className="flex justify-between">
-                  <span>Payment</span>
-                  <span className="text-green-600 font-semibold">
-                    Paid
-                  </span>
-                </div>
-              </div>
+            
+            {/* Payment Badge */}
+            <div className="mt-12 pt-8 border-t border-dashed border-amber-900/10 flex items-center justify-center gap-3">
+                <Gift className="w-4 h-4 text-[#4a2c2a]/30" />
+                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-amber-900/30 italic">
+                    Secured Payment Finalized
+                </p>
             </div>
           </div>
         </div>
 
-        {/* Actions */}
+        {/* Navigation Actions */}
         <div className="grid sm:grid-cols-2 gap-4">
           <Link
             to="/orders"
-            className="bg-amber-500 text-white py-3 rounded-xl font-semibold flex justify-center items-center gap-2"
+            className="group bg-[#4a2c2a] text-[#fffcf8] py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] flex justify-center items-center gap-3 shadow-xl shadow-[#4a2c2a]/20 transition-all hover:bg-[#3d2422]"
           >
-            <Package className="w-5 h-5" />
-            View My Orders
+            <Package className="w-4 h-4" />
+            Track Ledger
           </Link>
 
           <Link
             to="/shops"
-            className="border border-amber-300 py-3 rounded-xl font-semibold flex justify-center items-center gap-2"
+            className="group bg-white border border-[#4a2c2a]/10 text-[#4a2c2a] py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] flex justify-center items-center gap-3 transition-all hover:bg-[#fffcf8]"
           >
-            <ShoppingBag className="w-5 h-5" />
-            Continue Shopping
+            <ShoppingBag className="w-4 h-4" />
+            Browse More
+            <ArrowRight className="w-3 h-3 opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0" />
           </Link>
         </div>
 
-        <div className="text-center mt-6">
-          <Link to="/" className="text-amber-600 flex justify-center gap-2">
-            <Home className="w-4 h-4" /> Back to Homepage
+        <div className="text-center mt-12">
+          <Link to="/" className="inline-flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.4em] text-amber-900/40 hover:text-[#4a2c2a] transition-colors">
+            <Home className="w-3 h-3" /> Return to Atelier
           </Link>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

@@ -9,11 +9,11 @@ import {
   ArrowLeft,
   ThumbsUp,
   ThumbsDown,
-  Smile,
-  Frown,
-  Meh,
   Send,
+  PenLine,
+  Award
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function AddFeedback() {
   const { id } = useParams();
@@ -21,7 +21,6 @@ export default function AddFeedback() {
   const location = useLocation();
   const { currentUser } = useContext(UserContext);
 
-  const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -31,65 +30,28 @@ export default function AddFeedback() {
   const [title, setTitle] = useState("");
   const [comment, setComment] = useState("");
   const [recommend, setRecommend] = useState(null);
-  const [pros, setPros] = useState("");
-  const [cons, setCons] = useState("");
-
-  useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        setLoading(true);
-        const res = await api.get(
-          `/products/${id}/reviews/`
-        );
-        setProduct(res.data);
-      } catch (error) {
-        toast.error("Failed to load product details");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProduct();
-  }, [id]);
 
   const getRatingLabel = (rating) => {
     const labels = {
-      1: "Poor",
-      2: "Fair",
-      3: "Average",
-      4: "Good",
-      5: "Excellent",
+      1: "Disappointing",
+      2: "Acceptable",
+      3: "Pleasant",
+      4: "Exquisite",
+      5: "Exceptional",
     };
-    return labels[rating] || "Select Rating";
-  };
-
-  const getRatingEmoji = (rating) => {
-    const emojis = {
-      1: <Frown className="w-6 h-6 text-red-500" />,
-      2: <Meh className="w-6 h-6 text-orange-500" />,
-      3: <Meh className="w-6 h-6 text-yellow-500" />,
-      4: <Smile className="w-6 h-6 text-lime-500" />,
-      5: <Smile className="w-6 h-6 text-green-500" />,
-    };
-    return emojis[rating] || null;
+    return labels[rating] || "Rate your experience";
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!currentUser) {
-      toast.error("Please login to submit a review");
+      toast.error("Please sign in to share your thoughts");
       navigate("/login", { state: { from: location } });
       return;
     }
-
-    if (rating === 0) {
-      toast.error("Please select a rating");
-      return;
-    }
+    if (rating === 0) return toast.error("Please provide a star rating");
 
     setSubmitting(true);
-
     try {
       await api.post(`/products/${id}/reviews/`, {
         rating,
@@ -97,247 +59,162 @@ export default function AddFeedback() {
         comment: comment.trim(),
         recommend,
       });
-
-      toast.success("Review submitted successfully");
+      toast.success("Your critique has been recorded");
       navigate(`/product/${id}`);
     } catch (error) {
-      if (error.response?.status === 400) {
-        toast.error(error.response.data.detail || "Invalid review data");
-      } else if (error.response?.status === 401) {
-        toast.error("Please login again");
-        navigate("/login");
-      } else {
-        toast.error("Failed to submit review");
-      }
+      toast.error("Submission failed. Please try again.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-500"></div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="min-h-screen bg-[#fffcf8] flex items-center justify-center">
+      <div className="w-8 h-8 border-2 border-[#4a2c2a]/10 border-t-[#4a2c2a] rounded-full animate-spin" />
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        {/* Header */}
-        <div className="flex items-center mb-8">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center space-x-2 text-amber-600 hover:text-amber-700 font-medium mr-4"
+    <div className="min-h-screen bg-[#fffcf8] py-16 px-4">
+      <div className="max-w-3xl mx-auto">
+        {/* Navigation */}
+        <motion.button
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          onClick={() => navigate(-1)}
+          className="flex items-center space-x-3 text-[#4a2c2a]/40 hover:text-[#4a2c2a] transition-colors mb-10 group"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          <span className="text-[10px] font-black uppercase tracking-[0.2em]">Return to Product</span>
+        </motion.button>
+
+        <div className="mb-12">
+          <h1 className="text-4xl font-black text-[#4a2c2a] tracking-tighter uppercase">Product Critique</h1>
+          <p className="text-[11px] font-bold uppercase tracking-widest text-amber-900/40 mt-2">Share your sensory experience with our atelier</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-8">
+          
+          {/* Star Selection Card */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-[40px] shadow-2xl shadow-[#4a2c2a]/5 border border-amber-900/5 p-8 md:p-12 text-center"
           >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Back</span>
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900">Write a Review</h1>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Review Form */}
-          <div className="lg:col-span-2">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Rating Section */}
-              <div className="bg-white rounded-2xl border border-amber-200 p-6 shadow-sm">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">
-                  Overall Rating
-                </h3>
-
-                <div className="flex flex-col items-center space-y-4">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex space-x-1">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                          key={star}
-                          type="button"
-                          onClick={() => setRating(star)}
-                          onMouseEnter={() => setHoverRating(star)}
-                          onMouseLeave={() => setHoverRating(0)}
-                          className="transition-transform hover:scale-110"
-                        >
-                          <Star
-                            className={`w-12 h-12 ${
-                              star <= (hoverRating || rating)
-                                ? "text-amber-500 fill-amber-500"
-                                : "text-gray-300"
-                            }`}
-                          />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-gray-900">
-                      {getRatingLabel(hoverRating || rating)}
-                    </p>
-                    <div className="flex items-center justify-center space-x-2 mt-2">
-                      {getRatingEmoji(hoverRating || rating)}
-                      <span className="text-lg text-gray-600">
-                        ({hoverRating || rating}/5)
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Recommendation */}
-              <div className="bg-white rounded-2xl border border-amber-200 p-6 shadow-sm">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">
-                  Would you recommend this product?
-                </h3>
-
-                <div className="flex space-x-4">
-                  <button
-                    type="button"
-                    onClick={() => setRecommend(true)}
-                    className={`flex-1 flex items-center justify-center space-x-2 py-4 px-6 rounded-xl border-2 transition-all ${
-                      recommend === true
-                        ? "border-green-500 bg-green-50 text-green-700"
-                        : "border-gray-300 hover:border-green-400"
-                    }`}
-                  >
-                    <ThumbsUp className="w-6 h-6" />
-                    <span className="font-semibold">Yes, I recommend</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setRecommend(false)}
-                    className={`flex-1 flex items-center justify-center space-x-2 py-4 px-6 rounded-xl border-2 transition-all ${
-                      recommend === false
-                        ? "border-red-500 bg-red-50 text-red-700"
-                        : "border-gray-300 hover:border-red-400"
-                    }`}
-                  >
-                    <ThumbsDown className="w-6 h-6" />
-                    <span className="font-semibold">No, I don't</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Review Details */}
-              <div className="bg-white rounded-2xl border border-amber-200 p-6 shadow-sm space-y-6">
-                <div>
-                  <label
-                    htmlFor="title"
-                    className="block text-lg font-bold text-gray-900 mb-3"
-                  >
-                    Review Title *
-                  </label>
-                  <input
-                    type="text"
-                    id="title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Summarize your experience in a few words"
-                    className="w-full px-4 py-3 border-2 border-amber-200 rounded-xl focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-colors"
-                    maxLength={100}
-                  />
-                  <div className="text-right text-sm text-gray-500 mt-1">
-                    {title.length}/100
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="comment"
-                    className="block text-lg font-bold text-gray-900 mb-3"
-                  >
-                    Your Review *
-                  </label>
-                  <textarea
-                    id="comment"
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    placeholder="Share details of your experience with this product..."
-                    rows={6}
-                    className="w-full px-4 py-3 border-2 border-amber-200 rounded-xl focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-colors resize-none"
-                    maxLength={1000}
-                  />
-                  <div className="text-right text-sm text-gray-500 mt-1">
-                    {comment.length}/1000
-                  </div>
-                </div>
-
-                {/* Pros & Cons */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label
-                      htmlFor="pros"
-                      className="block text-lg font-bold text-gray-900 mb-3"
-                    >
-                      What you liked
-                    </label>
-                    <textarea
-                      id="pros"
-                      value={pros}
-                      onChange={(e) => setPros(e.target.value)}
-                      placeholder="Things you appreciated about the product..."
-                      rows={3}
-                      className="w-full px-4 py-3 border-2 border-green-200 rounded-xl focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-colors resize-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="cons"
-                      className="block text-lg font-bold text-gray-900 mb-3"
-                    >
-                      What could be better
-                    </label>
-                    <textarea
-                      id="cons"
-                      value={cons}
-                      onChange={(e) => setCons(e.target.value)}
-                      placeholder="Areas where the product could improve..."
-                      rows={3}
-                      className="w-full px-4 py-3 border-2 border-red-200 rounded-xl focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-colors resize-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Submit Button */}
-              <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+            <Award className="w-6 h-6 text-[#4a2c2a]/20 mx-auto mb-6" />
+            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[#4a2c2a] mb-8">Overall Impression</h3>
+            
+            <div className="flex justify-center space-x-2 mb-6">
+              {[1, 2, 3, 4, 5].map((star) => (
                 <button
+                  key={star}
                   type="button"
-                  onClick={() => navigate(-1)}
-                  className="flex-1 py-4 px-6 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:border-gray-400 transition-colors"
+                  onClick={() => setRating(star)}
+                  onMouseEnter={() => setHoverRating(star)}
+                  onMouseLeave={() => setHoverRating(0)}
+                  className="transition-transform active:scale-90"
                 >
-                  Cancel
+                  <Star
+                    className={`w-10 h-10 transition-all ${
+                      star <= (hoverRating || rating)
+                        ? "text-[#4a2c2a] fill-[#4a2c2a]"
+                        : "text-amber-900/10 fill-transparent"
+                    }`}
+                  />
                 </button>
+              ))}
+            </div>
+            <p className="text-xl font-black text-[#4a2c2a] tracking-tight h-8">
+              {getRatingLabel(hoverRating || rating)}
+            </p>
+          </motion.div>
 
-                <button
-                  type="submit"
-                  disabled={
-                    submitting ||
-                    rating === 0 ||
-                    !title.trim() ||
-                    !comment.trim()
-                  }
-                  className="flex-1 flex items-center justify-center space-x-2 py-4 px-6 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-bold hover:from-amber-600 hover:to-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
-                >
-                  {submitting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      <span>Submitting...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-5 h-5" />
-                      <span>Submit Review</span>
-                    </>
-                  )}
-                </button>
+          {/* Details Card */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-white rounded-[40px] shadow-2xl shadow-[#4a2c2a]/5 border border-amber-900/5 p-8 md:p-12 space-y-10"
+          >
+            {/* Title */}
+            <div className="space-y-4">
+              <label className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-900/40 flex items-center gap-2">
+                <PenLine className="w-3.5 h-3.5" /> Critique Headline
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="E.g., A Symphony of Dark Cocoa"
+                className="w-full bg-[#fffcf8] border border-amber-900/10 rounded-2xl px-6 py-4 outline-none focus:border-[#4a2c2a] transition-all text-[#4a2c2a] font-bold text-sm"
+                maxLength={100}
+              />
+            </div>
+
+            {/* Recommendation Toggle */}
+            <div className="space-y-4">
+              <label className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-900/40">The Verdict</label>
+              <div className="flex gap-4">
+                {[
+                  { val: true, label: "Highly Recommend", icon: ThumbsUp },
+                  { val: false, label: "Not for Me", icon: ThumbsDown }
+                ].map((opt) => (
+                  <button
+                    key={opt.label}
+                    type="button"
+                    onClick={() => setRecommend(opt.val)}
+                    className={`flex-1 py-4 px-2 rounded-2xl border transition-all flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest ${
+                      recommend === opt.val 
+                        ? "bg-[#4a2c2a] text-[#fffcf8] border-[#4a2c2a] shadow-lg shadow-[#4a2c2a]/20" 
+                        : "bg-transparent border-amber-900/10 text-[#4a2c2a]/40 hover:border-[#4a2c2a]/40"
+                    }`}
+                  >
+                    <opt.icon size={14} />
+                    {opt.label}
+                  </button>
+                ))}
               </div>
-            </form>
+            </div>
+
+            {/* Comment */}
+            <div className="space-y-4">
+              <label className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-900/40">Observations</label>
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Describe the texture, aroma, and lingering notes..."
+                rows={5}
+                className="w-full bg-[#fffcf8] border border-amber-900/10 rounded-3xl px-6 py-5 outline-none focus:border-[#4a2c2a] transition-all text-[#4a2c2a] font-bold text-sm leading-relaxed resize-none"
+                maxLength={1000}
+              />
+            </div>
+          </motion.div>
+
+          {/* Submission Action */}
+          <div className="flex flex-col sm:flex-row gap-4 pt-4">
+            <button
+              type="submit"
+              disabled={submitting || rating === 0 || !title.trim() || !comment.trim()}
+              className="flex-1 bg-[#4a2c2a] text-[#fffcf8] py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] shadow-2xl shadow-[#4a2c2a]/30 hover:bg-[#3d2422] transition-all disabled:opacity-30 flex items-center justify-center gap-3"
+            >
+              {submitting ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  Publish Review
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="sm:w-1/3 py-5 rounded-2xl border border-amber-900/10 text-[#4a2c2a]/40 font-black uppercase tracking-[0.2em] text-[10px] hover:bg-amber-900/5 transition-all"
+            >
+              Discard
+            </button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );

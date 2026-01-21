@@ -1,38 +1,39 @@
 // src/components/SearchBar.jsx
-import { Search } from "lucide-react";
+import { Search, X, Sparkles } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function SearchBar({ searchQuery, setSearchQuery }) {
   return (
-    <div className="relative flex-1 max-w-2xl">
+    <div className="relative flex-1 max-w-2xl group">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-amber-500" />
+        {/* Leading Icon */}
+        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#4a2c2a]/30 group-focus-within:text-[#4a2c2a] transition-colors duration-300" />
+        
+        {/* Discovery Input */}
         <input
           type="text"
-          placeholder="Search chocolates, nuts, snacks..."
+          placeholder="Discover artisanal blends..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 bg-white border border-amber-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 placeholder:text-amber-400 text-amber-900 hover:border-amber-300"
+          className="w-full pl-12 pr-12 py-4 bg-white border border-amber-900/5 rounded-2xl shadow-sm text-[#4a2c2a] text-sm font-bold placeholder:text-amber-900/20 placeholder:font-medium focus:outline-none focus:ring-4 focus:ring-[#4a2c2a]/5 focus:border-[#4a2c2a]/20 transition-all duration-300 hover:border-amber-900/10"
         />
         
-        {/* Clear button */}
-        {searchQuery && (
-          <button
-            onClick={() => setSearchQuery("")}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-amber-400 hover:text-amber-600 transition-colors duration-200"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        )}
+        {/* Clear Button - Refined UI */}
+        <AnimatePresence>
+          {searchQuery && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1.5 rounded-xl bg-amber-900/5 text-[#4a2c2a]/40 hover:text-[#4a2c2a] hover:bg-amber-900/10 transition-all"
+            >
+              <X className="w-3.5 h-3.5" />
+            </motion.button>
+          )}
+        </AnimatePresence>
       </div>
       
-      {/* Search hint */}
-      <div className="absolute top-full left-0 right-0 bg-amber-50 border border-amber-200 rounded-b-lg p-2 shadow-lg opacity-0 pointer-events-none group-focus-within:opacity-100 transition-opacity duration-200">
-        <p className="text-xs text-amber-600 text-center">
-          Try searching for "dark chocolate", "almonds", "cashews", etc.
-        </p>
-      </div>
     </div>
   );
 }

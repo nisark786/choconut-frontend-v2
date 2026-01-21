@@ -15,9 +15,10 @@ import {
   Upload,
   Eye
 } from "lucide-react";
+import { toast } from "react-toastify";
 
 function EditProduct() {
-  const { products, updateProduct} = useContext(AdminContext);
+  const { updateProduct,getProductById} = useContext(AdminContext);
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -33,22 +34,29 @@ function EditProduct() {
   const [imagePreview, setImagePreview] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // Load the product data by id
   useEffect(() => {
-    const productToEdit = products.find((p) => p.id === id);
-    if (productToEdit) {
+  const loadProduct = async () => {
+    try {
+      const product = await getProductById(id);
+
       setFormData({
-        name: productToEdit.name || "",
-        price: productToEdit.price || "",
-        image: productToEdit.image || "",
-        category: productToEdit.category || "",
-        premium: productToEdit.premium || false,
-        stock: productToEdit.stock || "",
-        description: productToEdit.description || ""
+        name: product.name || "",
+        price: product.price || "",
+        image: product.image || "",
+        category: product.category_name || "",
+        premium: product.premium || false,
+        stock: product.stock || "",
+        description: product.description || "",
       });
-      setImagePreview(productToEdit.image || "");
+
+      setImagePreview(product.image || "");
+    } catch (err) {
+      console.error("Failed to load product", err);
     }
-  }, [id, products]);
+  };
+
+  loadProduct();
+}, [id]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -63,13 +71,6 @@ function EditProduct() {
     }
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      alert("File upload functionality would be implemented here. For now, please update the image URL.");
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -81,11 +82,10 @@ function EditProduct() {
         stock: Number(formData.stock),
       });
 
-      alert("Product updated successfully!");
+      toast.success("Product updated successfully!");
       navigate("/admin/products");
     } catch (error) {
-      console.error(error);
-      alert("Error updating product");
+      toast.error("Error updating product");
     } finally {
       setSubmitting(false);
     }
@@ -94,12 +94,6 @@ function EditProduct() {
   const categories = [
     "Chocolates",
     "Nuts",
-    "Dry Fruits", 
-    "Gift Boxes",
-    "Sweeteners",
-    "Spreads",
-    "Beverages",
-    "Snacks"
   ];
 
   

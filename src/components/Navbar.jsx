@@ -1,5 +1,4 @@
-// src/components/Navbar.jsx
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, memo } from "react";
 import {
   ShoppingCart,
   User,
@@ -10,27 +9,37 @@ import {
   Store,
   Home,
   Package,
+  ChevronDown,
+  LayoutDashboard
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { UserContext } from "../context/UserContext";
 
-export default function Navbar() {
+const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  
   const { currentUser, cart, wishlist, logout } = useContext(UserContext);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Scroll effect
+  // Scroll logic for glassmorphism effect
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 10);
-    window.addEventListener("scroll", handleScroll);
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Live counts
-  const cartCount = cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+  // Close menus when changing pages
+  useEffect(() => {
+    setMenuOpen(false);
+    setShowUserDropdown(false);
+  }, [location]);
 
-  const wishlistCount = wishlist.length;
+  const cartCount = cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+  const wishlistCount = wishlist?.length || 0;
 
   const handleLogout = () => {
     logout();
@@ -39,258 +48,209 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`sticky top-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${
         isScrolled
-          ? "bg-white shadow-lg backdrop-blur-sm"
-          : "bg-gradient-to-r from-amber-50 to-orange-50 shadow-md"
+          ? "bg-white/80 backdrop-blur-md shadow-sm py-2"
+          : "bg-[#fffcf8] py-4"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
+        <div className="flex justify-between items-center h-14">
+          
+          {/* LOGO AREA */}
           <div
             onClick={() => navigate("/")}
-            className="flex items-center space-x-2 cursor-pointer group"
+            className="flex items-center space-x-3 cursor-pointer group"
           >
-            <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-lg">CN</span>
+            <div className="relative">
+              <div className="w-10 h-10 bg-gradient-to-br from-[#4a2c2a] to-[#2d1b1a] rounded-xl flex items-center justify-center shadow-lg transform group-hover:rotate-12 transition-transform duration-300">
+                <span className="text-amber-50 font-bold text-lg tracking-tighter">CN</span>
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
             </div>
-            <div className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent group-hover:from-amber-700 group-hover:to-orange-700 transition-all">
-              Choco<span className="text-green-600">Nut</span>
+            <div className="flex flex-col leading-none">
+              <span className="text-xl font-black text-[#2d1b1a] tracking-tight">
+                Choco<span className="text-green-600">Nut</span>
+              </span>
+              <span className="text-[10px] font-bold text-amber-800 tracking-[0.2em] uppercase">Premium Treats</span>
             </div>
           </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <div className="flex space-x-6">
-              <Link
-                to="/"
-                className="flex items-center space-x-1 text-gray-700 hover:text-amber-600 font-medium transition-colors duration-200 group"
-              >
-                <Home className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                <span>Home</span>
-              </Link>
-              <Link
-                to="/shops"
-                className="flex items-center space-x-1 text-gray-700 hover:text-amber-600 font-medium transition-colors duration-200 group"
-              >
-                <Store className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                <span>Shops</span>
-              </Link>
-              <Link
-                to="/orders"
-                className="flex items-center space-x-1 text-gray-700 hover:text-amber-600 font-medium transition-colors duration-200 group"
-              >
-                <Package className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                <span>Orders</span>
-              </Link>
-              {currentUser?.is_staff && (
-                <Link
-                  to="/admin"
-                  className="flex items-center space-x-1 text-gray-700 hover:text-amber-600 font-medium transition-colors duration-200 group"
+          {/* DESKTOP NAVIGATION (Centered) */}
+          <div className="hidden md:flex items-center space-x-1 bg-[#f3eae0]/50 p-1 rounded-full border border-amber-100">
+            <NavIconLink to="/" icon={<Home size={18} />} label="Home" active={location.pathname === "/"} />
+            <NavIconLink to="/shops" icon={<Store size={18} />} label="Shops" active={location.pathname === "/shops"} />
+            <NavIconLink to="/orders" icon={<Package size={18} />} label="Orders" active={location.pathname === "/orders"} />
+          </div>
+
+          {/* ACTIONS & USER PROFILE */}
+          <div className="hidden md:flex items-center space-x-2">
+            <div className="flex items-center space-x-1 pr-2 border-r border-amber-200">
+              <ActionButton 
+                onClick={() => navigate("/wishlist")} 
+                icon={<Heart size={20} />} 
+                count={wishlistCount} 
+                activeColor="text-rose-500" 
+              />
+              <ActionButton 
+                onClick={() => navigate("/cart")} 
+                icon={<ShoppingCart size={20} />} 
+                count={cartCount} 
+                activeColor="text-amber-700" 
+              />
+            </div>
+
+            {currentUser ? (
+              <div className="relative ml-2">
+                <button
+                  onClick={() => setShowUserDropdown(!showUserDropdown)}
+                  className="flex items-center space-x-2 p-1.5 rounded-full bg-white border border-amber-100 hover:border-amber-300 transition-all shadow-sm"
                 >
-                  <Store className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                  <span>Admin</span>
-                </Link>
-              )}
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center space-x-4 border-l border-gray-200 pl-6 ml-2">
-              {/* Cart */}
-              <div
-                onClick={() => navigate("/cart")}
-                className="relative p-2 rounded-lg hover:bg-amber-50 cursor-pointer transition-colors duration-200 group"
-              >
-                <ShoppingCart className="w-5 h-5 text-gray-700 group-hover:text-amber-600 transition-colors" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-pink-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold shadow-lg animate-pulse">
-                    {cartCount}
-                  </span>
-                )}
-              </div>
-
-              {/* Wishlist */}
-              <div
-                onClick={() => navigate("/wishlist")}
-                className="relative p-2 rounded-lg hover:bg-amber-50 cursor-pointer transition-colors duration-200 group"
-              >
-                <Heart className="w-5 h-5 text-gray-700 group-hover:text-pink-500 transition-colors" />
-                {wishlistCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-gradient-to-r from-pink-500 to-rose-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold shadow-lg animate-pulse">
-                    {wishlistCount}
-                  </span>
-                )}
-              </div>
-
-              {/* User Section */}
-              <div className="flex items-center space-x-3 ml-2">
-                {currentUser ? (
-                  <div className="flex items-center space-x-4">
-                    <button
-                      onClick={() => navigate("/profile")}
-                      className="flex items-center space-x-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-full font-medium hover:from-amber-600 hover:to-orange-600 transition-all duration-200 shadow-lg hover:shadow-xl"
-                    >
-                      <User className="w-4 h-4" />
-                      <span>
-                        {currentUser.name.toUpperCase().split(" ")[0]}
-                      </span>
-                    </button>
-                    <button
-                      onClick={handleLogout}
-                      className="p-2 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-600 transition-colors duration-200"
-                      title="Logout"
-                    >
-                      <LogOut className="w-5 h-5" />
-                    </button>
+                  <div className="w-8 h-8 rounded-full bg-[#4a2c2a] text-amber-50 flex items-center justify-center font-bold text-sm">
+                    {currentUser.name[0].toUpperCase()}
                   </div>
-                ) : (
-                  <button
-                    onClick={() => navigate("/login")}
-                    className="flex items-center space-x-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-full font-medium hover:from-amber-600 hover:to-orange-600 transition-all duration-200 shadow-lg hover:shadow-xl"
-                  >
-                    <User className="w-4 h-4" />
-                    <span>Login</span>
-                  </button>
-                )}
+                  <span className="text-sm font-semibold text-[#2d1b1a] pr-1">
+                    {currentUser.name.split(" ")[0]}
+                  </span>
+                  <ChevronDown size={14} className={`text-amber-800 transition-transform duration-300 ${showUserDropdown ? "rotate-180" : ""}`} />
+                </button>
+
+                {/* DROPDOWN MENU */}
+                <AnimatePresence>
+                  {showUserDropdown && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-xl border border-amber-50 p-2 ring-1 ring-black/5"
+                    >
+                      <DropdownItem onClick={() => navigate("/profile")} icon={<User size={16} />} label="My Profile" />
+                      {currentUser?.is_staff && (
+                        <DropdownItem onClick={() => navigate("/admin")} icon={<LayoutDashboard size={16} />} label="Admin Dashboard" highlight />
+                      )}
+                      <div className="my-1 border-t border-amber-50" />
+                      <DropdownItem onClick={handleLogout} icon={<LogOut size={16} />} label="Logout" danger />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-            </div>
+            ) : (
+              <button
+                onClick={() => navigate("/login")}
+                className="ml-2 px-6 py-2 bg-[#4a2c2a] text-white rounded-full font-bold text-sm hover:bg-[#36201f] transition-all shadow-md shadow-amber-900/20 active:scale-95"
+              >
+                Sign In
+              </button>
+            )}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* MOBILE TOGGLE */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-amber-100 transition-colors duration-200"
+            className="md:hidden p-2 rounded-xl bg-amber-50 text-amber-900"
           >
-            {menuOpen ? (
-              <X className="w-6 h-6 text-gray-700" />
-            ) : (
-              <Menu className="w-6 h-6 text-gray-700" />
-            )}
+            {menuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Menu */}
-      {menuOpen && (
-        <div className="md:hidden bg-white border-t border-amber-100 shadow-xl">
-          <div className="px-4 py-6 space-y-4">
-            {/* Links */}
-            <Link
-              to="/"
-              className="flex items-center space-x-3 p-3 rounded-lg hover:bg-amber-50 text-gray-700 transition-colors duration-200"
-              onClick={() => setMenuOpen(false)}
-            >
-              <Home className="w-5 h-5 text-amber-600" />
-              <span className="font-medium">Home</span>
-            </Link>
-            <Link
-              to="/shops"
-              className="flex items-center space-x-3 p-3 rounded-lg hover:bg-amber-50 text-gray-700 transition-colors duration-200"
-              onClick={() => setMenuOpen(false)}
-            >
-              <Store className="w-5 h-5 text-amber-600" />
-              <span className="font-medium">Shops</span>
-            </Link>
-            <Link
-              to="/orders"
-              className="flex items-center space-x-3 p-3 rounded-lg hover:bg-amber-50 text-gray-700 transition-colors duration-200"
-              onClick={() => setMenuOpen(false)}
-            >
-              <Package className="w-5 h-5 text-amber-600" />
-              <span className="font-medium">Orders</span>
-            </Link>
-            {currentUser?.isAdmin && (
-              <Link
-                to="/admin"
-                className="flex items-center space-x-3 p-3 rounded-lg hover:bg-green-50 text-green-700 transition-colors duration-200"
-                onClick={() => setMenuOpen(false)}
-              >
-                <Store className="w-5 h-5 text-green-600" />
-                <span className="font-medium">Admin</span>
-              </Link>
-            )}
+      {/* MOBILE MENU */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden bg-white border-t border-amber-100 overflow-hidden"
+          >
+            <div className="p-4 space-y-3">
+              <MobileLink to="/" icon={<Home size={20} />} label="Home" onClick={() => setMenuOpen(false)} />
+              <MobileLink to="/shops" icon={<Store size={20} />} label="Shops" onClick={() => setMenuOpen(false)} />
+              <MobileLink to="/orders" icon={<Package size={20} />} label="Orders" onClick={() => setMenuOpen(false)} />
+              
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <button onClick={() => navigate("/cart")} className="flex items-center justify-center space-x-2 p-3 rounded-xl bg-amber-50 text-amber-900 font-bold border border-amber-100">
+                  <ShoppingCart size={18} /> <span>Cart ({cartCount})</span>
+                </button>
+                <button onClick={() => navigate("/wishlist")} className="flex items-center justify-center space-x-2 p-3 rounded-xl bg-rose-50 text-rose-700 font-bold border border-rose-100">
+                  <Heart size={18} /> <span>Wishlist</span>
+                </button>
+              </div>
 
-            {/* Mobile Actions */}
-            <div className="flex space-x-4 pt-4 border-t border-gray-100">
-              <button
-                onClick={() => {
-                  navigate("/cart");
-                  setMenuOpen(false);
-                }}
-                className="flex-1 flex items-center justify-center space-x-2 p-3 rounded-lg bg-amber-50 text-amber-700 font-medium hover:bg-amber-100 transition-colors"
-              >
-                <ShoppingCart className="w-5 h-5" />
-                <span>Cart {cartCount > 0 && `(${cartCount})`}</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  navigate("/wishlist");
-                  setMenuOpen(false);
-                }}
-                className="flex-1 flex items-center justify-center space-x-2 p-3 rounded-lg bg-pink-50 text-pink-700 font-medium hover:bg-pink-100 transition-colors"
-              >
-                <Heart className="w-5 h-5" />
-                <span>
-                  Wishlist {wishlistCount > 0 && `(${wishlistCount})`}
-                </span>
-              </button>
-            </div>
-
-            {/* Mobile User */}
-            <div className="pt-4 border-t border-gray-100">
               {currentUser ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center">
-                        <span className="text-white font-semibold text-sm">
-                          {currentUser.name.split(" ")[0][0]}
-                        </span>
-                      </div>
-                      <span className="font-medium text-gray-900">
-                        {currentUser.name}
-                      </span>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => {
-                      navigate("/profile");
-                      setMenuOpen(false);
-                    }}
-                    className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 text-gray-700 transition-colors"
-                  >
-                    <User className="w-5 h-5" />
-                    <span>Profile</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleLogout();
-                      setMenuOpen(false);
-                    }}
-                    className="w-full flex items-center space-x-3 p-3 rounded-lg hover:bg-red-50 text-red-600 transition-colors"
-                  >
-                    <LogOut className="w-5 h-5" />
-                    <span>Logout</span>
-                  </button>
+                <div className="pt-2 space-y-2 border-t border-amber-50">
+                   <button onClick={() => navigate("/profile")} className="w-full flex items-center space-x-3 p-3 text-[#2d1b1a] font-semibold">
+                    <User size={20} /> <span>My Profile</span>
+                   </button>
+                   <button onClick={handleLogout} className="w-full flex items-center space-x-3 p-3 text-red-600 font-semibold bg-red-50 rounded-xl">
+                    <LogOut size={20} /> <span>Logout</span>
+                   </button>
                 </div>
               ) : (
-                <button
-                  onClick={() => {
-                    navigate("/login");
-                    setMenuOpen(false);
-                  }}
-                  className="w-full flex items-center justify-center space-x-2 p-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg font-medium hover:from-amber-600 hover:to-orange-600 transition-all"
-                >
-                  <User className="w-5 h-5" />
-                  <span>Login / Register</span>
+                <button onClick={() => navigate("/login")} className="w-full p-4 bg-[#4a2c2a] text-white rounded-xl font-bold">
+                  Login / Register
                 </button>
               )}
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
-}
+};
+
+/* --- HELPER SUB-COMPONENTS (For Cleanliness & Performance) --- */
+
+const NavIconLink = ({ to, icon, label, active }) => (
+  <Link
+    to={to}
+    className={`flex items-center space-x-2 px-5 py-2 rounded-full text-sm font-bold transition-all duration-300 ${
+      active 
+        ? "bg-white text-amber-900 shadow-sm ring-1 ring-amber-100" 
+        : "text-amber-800/60 hover:text-amber-900 hover:bg-white/50"
+    }`}
+  >
+    {icon}
+    <span>{label}</span>
+  </Link>
+);
+
+const ActionButton = ({ icon, count, onClick, activeColor }) => (
+  <button
+    onClick={onClick}
+    className="relative p-2.5 rounded-full text-amber-900/70 hover:bg-amber-50 hover:text-amber-900 transition-all group"
+  >
+    {icon}
+    {count > 0 && (
+      <span className="absolute top-1 right-1 bg-green-600 text-white text-[10px] font-black w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-white">
+        {count}
+      </span>
+    )}
+  </button>
+);
+
+const DropdownItem = ({ icon, label, onClick, danger, highlight }) => (
+  <button
+    onClick={onClick}
+    className={`w-full flex items-center space-x-3 p-3 rounded-xl text-sm font-semibold transition-colors ${
+      danger ? "text-red-600 hover:bg-red-50" : 
+      highlight ? "text-green-700 hover:bg-green-50" : "text-slate-700 hover:bg-amber-50"
+    }`}
+  >
+    {icon}
+    <span>{label}</span>
+  </button>
+);
+
+const MobileLink = ({ to, icon, label, onClick }) => (
+  <Link
+    to={to}
+    onClick={onClick}
+    className="flex items-center space-x-4 p-4 rounded-xl hover:bg-amber-50 text-[#2d1b1a] font-bold transition-all"
+  >
+    <span className="text-amber-700">{icon}</span>
+    <span>{label}</span>
+  </Link>
+);
+
+export default memo(Navbar);
