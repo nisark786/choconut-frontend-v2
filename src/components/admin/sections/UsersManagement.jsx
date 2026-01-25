@@ -10,249 +10,196 @@ import {
   ShoppingBag,
   CheckCircle,
   XCircle,
+  UserCheck,
+  UserX,
+  UserPlus,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import DataTable from "../DataTable";
+import { motion } from "framer-motion";
 
 export default function UsersManagement() {
   const navigate = useNavigate();
-  const { users, userAction, userStats, fetchUsers, userPagination } =
-    useContext(AdminContext);
+  const { users, userAction, userStats, fetchUsers, userPagination } = useContext(AdminContext);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
   useEffect(() => {
     const delay = setTimeout(() => {
-      fetchUsers({
-        search: searchTerm,
-        status: statusFilter,
-        page: 1,
-      });
+      fetchUsers({ search: searchTerm, status: statusFilter, page: 1 });
     }, 400);
-
     return () => clearTimeout(delay);
   }, [searchTerm, statusFilter]);
 
-  const getStatusText = (user) => {
-    if (user.is_blocked) return "Blocked";
-    if (!user.is_active) return "Inactive";
-    return "Active";
+  const getStatusStyles = (user) => {
+    if (user.is_blocked) return "bg-red-50 text-red-700 border-red-100";
+    if (!user.is_active) return "bg-amber-50 text-amber-800 border-amber-100";
+    return "bg-emerald-50 text-emerald-700 border-emerald-100";
   };
 
-  const getStatusColor = (user) => {
-    if (user.is_blocked) return "bg-red-100 text-red-800";
-    if (!user.is_active) return "bg-yellow-100 text-yellow-800";
-    return "bg-green-100 text-green-800";
-  };
+  const statConfig = [
+    { label: "Total Patrons", val: userStats.total, color: "bg-[#4a2c2a]", icon: UserCheck },
+    { label: "Verified", val: userStats.active, color: "bg-[#8b5e34]", icon: CheckCircle },
+    { label: "Pending", val: userStats.notVerified, color: "bg-[#bc8a5f]", icon: Calendar },
+    { label: "Blacklisted", val: userStats.blocked, color: "bg-red-400", icon: UserX },
+    { label: "New Growth", val: userStats.newThisMonth, color: "bg-emerald-400", icon: UserPlus },
+  ];
+
+  // FIXED COLUMN WIDTHS
+  const tableHeaders = [
+    { label: "Patron Profile", className: "w-[25%]" },
+    { label: "Contact Information", className: "w-[20%]" },
+    { label: "Standing", className: "w-[15%]" },
+    { label: "Member Since", className: "w-[15%]" },
+    { label: "Activity", className: "w-[15%]" },
+    { label: "Actions", className: "w-[10%] text-right" },
+  ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10 pb-12">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Users Management</h2>
-          <p className="text-gray-600 mt-1">
-            Manage customer accounts and profiles
-          </p>
-        </div>
-        <div className="flex space-x-3 mt-4 sm:mt-0"></div>
+      <div className="flex flex-col">
+        <h1 className="text-3xl font-black text-[#4a2c2a] uppercase tracking-tighter">Patronage Registry</h1>
+        <p className="text-amber-900/40 text-[11px] font-bold uppercase tracking-[0.4em] mt-1">Manage Elite Customer Relations</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-gray-200">
-          <p className="text-sm text-gray-600">Total Users</p>
-          <p className="text-2xl font-bold text-gray-900">{userStats.total}</p>
-          <div className="w-full h-2 bg-blue-500 rounded-full mt-2"></div>
-        </div>
-        <div className="bg-white p-4 rounded-2xl border border-gray-200">
-          <p className="text-sm text-gray-600">Active Users</p>
-          <p className="text-2xl font-bold text-green-600">
-            {userStats.active}
-          </p>
-          <div className="w-full h-2 bg-green-500 rounded-full mt-2"></div>
-        </div>
-        <div className="bg-white p-4 rounded-2xl border border-gray-200">
-          <p className="text-sm text-gray-600">InActive Users</p>
-          <p className="text-2xl font-bold text-amber-700">
-            {userStats.notVerified}
-          </p>
-          <div className="w-full h-2 bg-amber-700 rounded-full mt-2"></div>
-        </div>
-        <div className="bg-white p-4 rounded-2xl border border-gray-200">
-          <p className="text-sm text-gray-600">Blocked Users</p>
-          <p className="text-2xl font-bold text-red-600">{userStats.blocked}</p>
-          <div className="w-full h-2 bg-red-500 rounded-full mt-2"></div>
-        </div>
-        <div className="bg-white p-4 rounded-2xl border border-gray-200">
-          <p className="text-sm text-gray-600">New This Month</p>
-          <p className="text-2xl font-bold text-amber-600">
-            {userStats.newThisMonth}
-          </p>
-          <div className="w-full h-2 bg-amber-500 rounded-full mt-2"></div>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+        {statConfig.map((stat, i) => (
+          <div key={i} className="bg-white p-5 rounded-[28px] border border-amber-900/5 shadow-xl shadow-[#4a2c2a]/5">
+            <div className="flex justify-between items-start mb-3">
+              <stat.icon size={16} className="text-amber-900/20" />
+            </div>
+            <p className="text-2xl font-black text-[#4a2c2a]">{stat.val}</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-amber-900/40">{stat.label}</p>
+            <div className="w-full h-1 bg-[#fffcf8] rounded-full mt-4 overflow-hidden">
+              <div className={`h-full ${stat.color} w-2/3 opacity-40`} />
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* Main Content */}
-      <div className="lg:col-span-3 space-y-6">
-        {/* Filters */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
-          <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
-            <div className="relative flex-1">
-              <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search users by name or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors w-full"
-              />
-            </div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors"
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">InActive</option>
-              <option value="blocked">Blocked</option>
-            </select>
-          </div>
+      {/* Filters */}
+      <div className="bg-white rounded-[24px] p-4 border border-amber-900/5 shadow-sm flex flex-col md:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="w-4 h-4 text-amber-900/20 absolute left-4 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="Search by name, email, or reference..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 bg-[#fffcf8] border-none rounded-xl text-sm font-bold text-[#4a2c2a] placeholder:text-amber-900/20 focus:ring-2 focus:ring-[#4a2c2a]/5 transition-all"
+          />
         </div>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-6 py-3 bg-[#fffcf8] border-none rounded-xl text-[11px] font-black uppercase tracking-widest text-[#4a2c2a] focus:ring-2 focus:ring-[#4a2c2a]/5 cursor-pointer"
+        >
+          <option value="all">Status: All Profiles</option>
+          <option value="active">Verified Patrons</option>
+          <option value="inactive">Pending Approval</option>
+          <option value="blocked">Blacklisted</option>
+        </select>
+      </div>
 
-        {/* Users Table */}
-        <DataTable
-          headers={["User", "Contact", "Status", "Joined", "Orders", "Actions"]}
-          data={users}
-          emptyMessage="No users found"
-          renderRow={(user) => (
-            <tr
-              key={user.id}
-              className="border-b border-gray-100 hover:bg-gray-50"
-            >
-              <td className="py-3 px-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">
-                      {user.name?.charAt(0)?.toUpperCase() || "U"}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{user.name}</p>
-                    <p className="text-sm text-gray-500">ID: {user.id}</p>
-                  </div>
+      {/* Users Table */}
+      <DataTable
+        headers={tableHeaders}
+        data={users}
+        renderRow={(user) => (
+          <>
+            {/* Profile - 25% */}
+            <td className="py-6 px-8 w-[25%]">
+              <div className="flex items-center space-x-4">
+                <div className="w-10 h-10 shrink-0 bg-[#4a2c2a] text-[#fffcf8] rounded-full flex items-center justify-center text-xs font-black ring-4 ring-amber-900/5 shadow-lg shadow-[#4a2c2a]/20">
+                  {user.name?.charAt(0)?.toUpperCase() || "U"}
                 </div>
-              </td>
-              <td className="py-3 px-4">
-                <div className="space-y-1">
-                  <div className="flex items-center space-x-2 text-sm">
-                    <Mail className="w-3 h-3 text-gray-400" />
-                    <span className="text-gray-600">{user.email}</span>
-                  </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-black text-[#4a2c2a] truncate">{user.name}</p>
+                  <p className="text-[9px] font-bold text-amber-900/30 tracking-widest">ID: {user.id}</p>
                 </div>
-              </td>
-              <td className="py-3 px-4">
-                <span
-                  className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                    user,
-                  )}`}
+              </div>
+            </td>
+
+            {/* Contact - 20% */}
+            <td className="py-6 px-8 w-[20%]">
+              <div className="flex items-center space-x-2 text-[11px] font-bold text-[#4a2c2a]/70 italic truncate">
+                <Mail className="w-3 h-3 shrink-0 opacity-30" />
+                <span className="truncate">{user.email}</span>
+              </div>
+            </td>
+
+            {/* Standing - 15% */}
+            <td className="py-6 px-8 w-[15%]">
+              <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border flex items-center w-fit gap-1.5 ${getStatusStyles(user)}`}>
+                {user.is_blocked ? <XCircle size={10} /> : <CheckCircle size={10} />}
+                {user.is_blocked ? "Blocked" : !user.is_active ? "Inactive" : "Active"}
+              </span>
+            </td>
+
+            {/* Date - 15% */}
+            <td className="py-6 px-8 w-[15%] text-[11px] font-bold text-amber-900/40">
+              <div className="flex items-center gap-2">
+                <Calendar size={12} className="opacity-40" />
+                {user.date_joined ? new Date(user.date_joined).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) : "N/A"}
+              </div>
+            </td>
+
+            {/* Activity - 15% */}
+            <td className="py-6 px-8 w-[15%]">
+              <div className="flex items-center space-x-2">
+                <ShoppingBag className="w-3 h-3 text-amber-900/20" />
+                <span className="text-sm font-black text-[#4a2c2a]">{user.orders_count || 0}</span>
+                <span className="text-[10px] uppercase font-bold text-amber-900/30 tracking-tighter">Orders</span>
+              </div>
+            </td>
+
+            {/* Actions - 10% */}
+            <td className="py-6 px-8 w-[10%] text-right">
+              <div className="flex items-center justify-end space-x-2">
+                <button
+                  onClick={() => navigate(`/admin/users/${user.id}`)}
+                  className="p-2 text-amber-900/20 hover:text-[#4a2c2a] hover:bg-white rounded-xl transition-all"
+                  title="View Dossier"
                 >
-                  {user.is_blocked ? (
-                    <XCircle className="w-3 h-3 mr-1" />
-                  ) : (
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                  )}
-                  {getStatusText(user)}
-                </span>
-              </td>
-              <td className="py-3 px-4">
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <Calendar className="w-3 h-3" />
-                  <span>
-                    {user.date_joined
-                      ? new Date(user.date_joined).toLocaleDateString()
-                      : "N/A"}
-                  </span>
-                </div>
-              </td>
-              <td className="py-3 px-4">
-                <div className="flex items-center space-x-2 text-sm">
-                  <ShoppingBag className="w-3 h-3 text-gray-400" />
-                  <span className="font-medium text-gray-900">
-                    {user.orders_count}
-                  </span>
-                  <span className="text-gray-500">orders</span>
-                </div>
-              </td>
-              <td className="py-3 px-4">
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => navigate(`/admin/users/${user.id}`)}
-                    className="flex items-center space-x-1 px-3 py-1 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-sm"
-                    title="View Details"
-                  >
-                    <Eye className="w-3 h-3" />
-                    <span>View</span>
-                  </button>
-                  <button
-                    onClick={() => userAction(user.id, user.is_blocked ? "unblock" : "block")}
-                    className={`flex items-center space-x-1 px-3 py-1 rounded-lg text-sm transition-colors ${
-                      user.is_blocked
-                        ? "bg-green-50 text-green-600 hover:bg-green-100"
-                        : "bg-red-50 text-red-600 hover:bg-red-100"
-                    }`}
-                    title={user.is_blocked ? "Unblock User" : "Block User"}
-                  >
-                    {user.is_blocked ? (
-                      <>
-                        <CheckCircle className="w-3 h-3" />
-                        <span>Unblock</span>
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="w-3 h-3" />
-                        <span>Block</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </td>
-            </tr>
-          )}
-        />
-        <div className="flex justify-between items-center mt-4">
-          <button
-            disabled={!userPagination.previous}
-            onClick={() =>
-              fetchUsers({
-                page: userPagination.page - 1,
-                search: searchTerm,
-                status: statusFilter,
-              })
-            }
-            className="px-4 py-2 bg-gray-100 rounded disabled:opacity-50"
-          >
-            Previous
-          </button>
+                  <Eye size={16} />
+                </button>
+                <button
+                  onClick={() => userAction(user.id, user.is_blocked ? "unblock" : "block")}
+                  className={`p-2 rounded-xl transition-all ${
+                    user.is_blocked ? "text-emerald-600 bg-emerald-50 hover:bg-emerald-100" : "text-red-600 bg-red-50 hover:bg-red-100"
+                  }`}
+                  title={user.is_blocked ? "Unblock Patron" : "Restrict Patron"}
+                >
+                  {user.is_blocked ? <UserCheck size={16} /> : <UserX size={16} />}
+                </button>
+              </div>
+            </td>
+          </>
+        )}
+      />
 
-          <span className="text-sm text-gray-600">
-            Page {userPagination.page}
-          </span>
-
-          <button
-            disabled={!userPagination.next}
-            onClick={() =>
-              fetchUsers({
-                page: userPagination.page + 1,
-                search: searchTerm,
-                status: statusFilter,
-              })
-            }
-            className="px-4 py-2 bg-gray-100 rounded disabled:opacity-50"
-          >
-            Next
-          </button>
+      {/* Pagination */}
+      <div className="flex justify-center items-center gap-4">
+        <button 
+          disabled={!userPagination.previous}
+          onClick={() => fetchUsers({ page: userPagination.page - 1, search: searchTerm, status: statusFilter })}
+          className="p-3 bg-white border border-amber-900/5 rounded-2xl disabled:opacity-30 text-[#4a2c2a] hover:bg-[#4a2c2a] hover:text-[#fffcf8] transition-all"
+        >
+          <ChevronLeft size={20} />
+        </button>
+        <div className="bg-[#4a2c2a] px-8 py-2 rounded-2xl shadow-lg shadow-[#4a2c2a]/20">
+            <span className="text-[11px] font-black text-[#fffcf8] uppercase tracking-widest">Entry {userPagination.page}</span>
         </div>
+        <button 
+          disabled={!userPagination.next}
+          onClick={() => fetchUsers({ page: userPagination.page + 1, search: searchTerm, status: statusFilter })}
+          className="p-3 bg-white border border-amber-900/5 rounded-2xl disabled:opacity-30 text-[#4a2c2a] hover:bg-[#4a2c2a] hover:text-[#fffcf8] transition-all"
+        >
+          <ChevronRight size={20} />
+        </button>
       </div>
     </div>
   );

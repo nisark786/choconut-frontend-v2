@@ -97,7 +97,7 @@ export default function Profile() {
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40 mb-2">Registry ID</p>
-                  <p className="font-mono text-xs opacity-80">{currentUser.id.slice(0, 12)}...</p>
+                  <p className="font-mono text-xs opacity-80">{currentUser.id}</p>
                 </div>
               </div>
             </div>

@@ -17,7 +17,7 @@ export function UserProvider({ children }) {
   });
   const [wishlist, setWishlist] = useState([]);
   const [loadingAuth, setLoadingAuth] = useState(true);
-  // src/context/UserContext.jsx
+  const [notifyMeList, setNotifyMeList] = useState([]);
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -29,18 +29,6 @@ export function UserProvider({ children }) {
         await bootstrapAuth();
         const res = await api.get("/me/");
         setCurrentUser(res.data);
-
-        if (res.data) {
-          const cartRes = await api.get("/cart/");
-          setCart({
-            items: cartRes.data.items || [],
-            total_price: cartRes.data.cart_total || 0,
-            total_items: cartRes.data.items?.length || 0,
-          });
-
-          const wishRes = await api.get("/wishlist/");
-          setWishlist(wishRes.data.items.map((i) => i.product));
-        }
       } catch (err) {
         console.error("Auth initialization failed:", err);
         setCurrentUser(null);
@@ -64,12 +52,17 @@ export function UserProvider({ children }) {
     setCurrentUser(null);
     setCart({ items: [], total_price: 0, total_items: 0 });
     setWishlist([]);
+    setNotifyMeList([]);
   };
 
   useEffect(() => {
-    if (currentUser && !loadingAuth ) {
-      fetchCart();
-      fetchWishlist();
+    if (currentUser) {
+      // Run these in parallel for speed
+      Promise.all([fetchCart(), fetchWishlist(),fetchNotifyMeList()]).finally(() => {
+        setLoadingAuth(false);
+      });
+    } else if (!loadingAuth) {
+      setLoadingAuth(false);
     }
   }, [currentUser]);
 
@@ -187,6 +180,62 @@ export function UserProvider({ children }) {
     }
   };
 
+
+
+  const fetchNotifyMeList = async () => {
+  if (!currentUser) return;
+
+  try {
+    const res = await api.get("/notifications/notify-me/list/");
+    const productIds = res.data.product_ids;
+    setNotifyMeList(productIds);
+  } catch (err) {
+    console.error("Fetch notify-me list failed", err);
+    setNotifyMeList([]);
+  }
+};
+
+  // Add product to Notify Me
+  const addToNotifyMe = async (productId) => {
+    if (!currentUser) {
+      toast.info("Please login to use Notify Me");
+      return;
+    }
+
+    const prevList = [...notifyMeList];
+
+    // Optimistic UI update
+    if (!prevList.includes(productId)) {
+      setNotifyMeList([...prevList, productId]);
+    }
+
+    try {
+      await api.post("/notifications/notify-me/", { product_id: productId });
+      toast.success("You will be notified when this product is back in stock!");
+    } catch (err) {
+      setNotifyMeList(prevList); // rollback
+      toast.error("Failed to add. Try again.");
+    }
+  };
+
+  // Remove product from Notify Me
+  const removeFromNotifyMe = async (productId) => {
+    if (!currentUser) return;
+
+    const prevList = [...notifyMeList];
+
+    // Optimistic UI update
+    setNotifyMeList(prevList.filter((id) => id !== productId));
+
+    try {
+      await api.delete(`/notifications/notify-me/${productId}/`);
+      toast.info("Notify Me removed for this product");
+    } catch (err) {
+      setNotifyMeList(prevList); // rollback
+      toast.error("Failed to remove. Try again.");
+    }
+  };
+
   return (
     <UserContext.Provider
       value={{
@@ -195,6 +244,7 @@ export function UserProvider({ children }) {
         loadingAuth,
         logout,
         cart,
+        setCart,
         fetchCart,
         addToCart,
         removeFromCart,
@@ -202,6 +252,9 @@ export function UserProvider({ children }) {
         wishlist,
         fetchWishlist,
         toggleWishlist,
+        notifyMeList, // <- Add here
+        addToNotifyMe, // <- Add here
+        removeFromNotifyMe,
       }}
     >
       {children}

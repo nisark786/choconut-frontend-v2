@@ -1,12 +1,12 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect,useContext,useMemo } from "react";
 import api from "../api/axios";
 import { toast } from "react-toastify";
-import { bootstrapAuth } from "../api/bootstrapAuth";
-import { isLoginInProgress } from "../api/auth";
+import { UserContext } from "./UserContext";
 
 export const AdminContext = createContext();
 
 export default function AdminProvider({ children }) {
+  const { currentUser, loadingAuth } = useContext(UserContext);
 const [dashboard, setDashboard] = useState({
   stats: {
     total_revenue: 0,
@@ -62,26 +62,28 @@ const [dashboard, setDashboard] = useState({
 
   useEffect(() => {
     const initAdmin = async () => {
-      if (isLoginInProgress()) {
-        await new Promise((r) => setTimeout(r, 300));
-      }
-      try {
-        await bootstrapAuth();
-        await fetchDashboard();
-        await fetchUsers();
-        await fetchOrders();
-        await fetchProducts();
-      } catch (err) {
-        if (err.response?.status !== 401 && err.response?.status !== 403) {
-          toast.error("Failed to load admin data");
+      if (loadingAuth) return;
+      if (currentUser && (currentUser.is_staff || currentUser.isAdmin)) {
+        try {
+          // No need to call bootstrapAuth here again, UserProvider handled it
+          await Promise.all([
+            fetchDashboard(),
+            fetchUsers(),
+            fetchOrders(),
+            fetchProducts()
+          ]);
+        } catch (err) {
+          console.error("Admin data fetch failed", err);
+        } finally {
+          setLoadingAdmin(false);
         }
-      } finally {
+      } else {
         setLoadingAdmin(false);
       }
     };
 
     initAdmin();
-  }, []);
+  }, [currentUser, loadingAuth]);
 
   const fetchProducts = async ({
   page = 1,
@@ -158,6 +160,7 @@ const [dashboard, setDashboard] = useState({
   };
 
   const addProduct = async (newProduct) => {
+    console.log("ADD PRODUCT PAYLOAD →", newProduct);
     try {
       const res = await api.post(`admin/products/`, newProduct);
       await fetchProducts();
@@ -276,7 +279,7 @@ const [dashboard, setDashboard] = useState({
 };
 
 
-  const value = {
+  const value = useMemo(() => ({
     dashboard,
     users,
     userStats,
@@ -300,7 +303,7 @@ const [dashboard, setDashboard] = useState({
     editingOrderId,
     updatedStatus,
     userAction,
-  };
+}), [dashboard, users, userStats, userPagination, orders, orderStats, orderPagination, products, productStats, productPagination, editingOrderId, updatedStatus]);
 
   return (
     <AdminContext.Provider value={value}>{children}</AdminContext.Provider>

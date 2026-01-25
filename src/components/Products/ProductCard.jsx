@@ -4,7 +4,7 @@ import { useContext, useState, memo } from "react";
 import { UserContext } from "../../context/UserContext";
 import { requireLogin } from "../../helpers/userHelpers";
 import { toast } from "react-toastify";
-import { motion} from "framer-motion";
+import { motion } from "framer-motion";
 
 const ProductCard = ({ product }) => {
   if (!product) return null;
@@ -17,6 +17,9 @@ const ProductCard = ({ product }) => {
     removeFromCart,
     wishlist,
     toggleWishlist,
+    notifyMeList,
+    addToNotifyMe,
+    removeFromNotifyMe,
   } = useContext(UserContext);
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -24,6 +27,7 @@ const ProductCard = ({ product }) => {
   const inCart = cartProductIds.has(product.id);
   const inWishlist = wishlist.some((item) => item.id === product.id);
   const isOutOfStock = product.stock === 0;
+  const notifyMeAdded = notifyMeList.includes(product.id);
 
   const handleCart = async (e) => {
     e.stopPropagation();
@@ -73,7 +77,7 @@ const ProductCard = ({ product }) => {
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           loading="lazy"
         />
-        
+
         {/* Subtle Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#4a2c2a]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
@@ -81,7 +85,9 @@ const ProductCard = ({ product }) => {
         {product.premium && (
           <div className="absolute top-4 left-4 bg-[#4a2c2a] backdrop-blur-md border border-white/20 text-amber-200 px-3 py-1.5 rounded-full flex items-center space-x-1.5 shadow-lg">
             <Sparkles size={12} className="animate-pulse" />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Premium</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]">
+              Premium
+            </span>
           </div>
         )}
 
@@ -111,13 +117,13 @@ const ProductCard = ({ product }) => {
           <span className="text-2xl font-black text-[#4a2c2a]">
             ₹{product.price}
           </span>
-          
+
           <button
             onClick={handleWishlist}
             className={`p-3 rounded-2xl transition-all duration-300 ${
-              inWishlist 
-              ? "bg-rose-50 text-rose-500" 
-              : "bg-amber-50 text-amber-800/40 hover:bg-amber-100"
+              inWishlist
+                ? "bg-rose-50 text-rose-500"
+                : "bg-amber-50 text-amber-800/40 hover:bg-amber-100"
             }`}
           >
             <Heart size={20} className={inWishlist ? "fill-current" : ""} />
@@ -125,24 +131,48 @@ const ProductCard = ({ product }) => {
         </div>
 
         {/* Integrated Action Button */}
-        <button
-          onClick={handleCart}
-          disabled={isOutOfStock || actionLoading}
-          className={`mt-4 w-full py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all duration-500 flex items-center justify-center space-x-2 shadow-sm ${
-            inCart
-              ? "bg-rose-500 text-white shadow-rose-200"
-              : "bg-[#4a2c2a] text-[#fffcf8] hover:bg-[#36201f] shadow-black/10"
-          } disabled:opacity-30 disabled:grayscale`}
-        >
-          {actionLoading ? (
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+        {isOutOfStock ? (
+          notifyMeAdded ? (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                removeFromNotifyMe(product.id);
+              }}
+              className="mt-4 w-full py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] bg-rose-500 text-white hover:bg-rose-600 transition-all duration-300"
+            >
+              Cancel Notify Me
+            </button>
           ) : (
-            <>
-              <ShoppingCart size={16} />
-              <span>{inCart ? "Remove Selection" : "Add to Boutique"}</span>
-            </>
-          )}
-        </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                addToNotifyMe(product.id);
+              }}
+              className="mt-4 w-full py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] bg-[#4a2c2a] text-[#fffcf8] hover:bg-[#36201f] transition-all duration-300"
+            >
+              Notify Me
+            </button>
+          )
+        ) : (
+          <button
+            onClick={handleCart}
+            disabled={actionLoading}
+            className={`mt-4 w-full py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all duration-500 flex items-center justify-center space-x-2 shadow-sm ${
+              inCart
+                ? "bg-rose-500 text-white shadow-rose-200"
+                : "bg-[#4a2c2a] text-[#fffcf8] hover:bg-[#36201f] shadow-black/10"
+            }`}
+          >
+            {actionLoading ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <ShoppingCart size={16} />
+                <span>{inCart ? "Remove Selection" : "Add to Boutique"}</span>
+              </>
+            )}
+          </button>
+        )}
       </div>
     </motion.div>
   );

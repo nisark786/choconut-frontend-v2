@@ -6,6 +6,7 @@ export const setAccessToken = (token) => {
   accessToken = token;
   isLoggedOut = false;
   loginInProgress = false;
+  window.dispatchEvent(new Event("auth-changed"));
 };
 
 export const getAccessToken = () => accessToken;

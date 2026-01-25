@@ -1,4 +1,4 @@
-// src/pages/AddProduct.jsx
+// src/pages/admin/AddProduct.jsx
 import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AdminContext } from "../../../context/AdminContext";
@@ -10,13 +10,15 @@ import {
   Box,
   FileText,
   Check,
-  Image,
+  Image as ImageIcon,
   Star,
+  Sparkles,
+  Zap
 } from "lucide-react";
 import { toast } from "react-toastify";
 
 function AddProduct() {
-    const {addProduct} = useContext(AdminContext)
+  const { addProduct } = useContext(AdminContext);
   const [formData, setFormData] = useState({
     name: "",
     price: "",
@@ -38,7 +40,7 @@ function AddProduct() {
       [name]: type === "checkbox" ? checked : value,
     }));
 
-    if (name === "image" && value) {
+    if (name === "image") {
       setImagePreview(value);
     }
   };
@@ -48,294 +50,258 @@ function AddProduct() {
     setLoading(true);
 
     try {
-      await addProduct(formData);
-
-      toast.success("Product added successfully!");
+      // Ensure numeric values are correctly typed
+      const submissionData = {
+        ...formData,
+        price: Number(formData.price),
+        stock: Number(formData.stock),
+      };
+      
+      await addProduct(submissionData);
+      toast.success("New masterpiece added to the collection!");
       navigate("/admin/products");
     } catch (error) {
-      toast.error("Error adding product");
+      toast.error("Failed to curate new product");
     } finally {
       setLoading(false);
     }
   };
 
-  const categories = [
-    "Chocolates",
-    "Nuts",
-  ];
+  const categories = ["Chocolates", "Nuts", "Truffles", "Limited Edition"];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex items-center mb-8">
-          <button
-            onClick={() => navigate("/admin/products")}
-            className="flex items-center space-x-2 text-amber-600 hover:text-amber-700 font-medium mr-4 group"
-          >
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-            <span>Back to Products</span>
-          </button>
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl flex items-center justify-center">
-              <Package className="w-6 h-6 text-white" />
-            </div>
+    <div className="min-h-screen bg-[#fffcf8] py-12">
+      <div className="max-w-6xl mx-auto px-6">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-6">
+          <div className="flex items-center gap-5">
+            <button
+              onClick={() => navigate("/admin/products")}
+              className="p-4 bg-white rounded-2xl shadow-sm hover:shadow-md hover:scale-105 transition-all text-[#4a2c2a] border border-amber-900/5 group"
+            >
+              <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+            </button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Add New Product
+              <h1 className="text-4xl font-black text-[#4a2c2a] tracking-tight italic">
+                Add New Creation
               </h1>
-              <p className="text-amber-700">
-                Create a new product for your store
+              <p className="text-amber-900/40 text-[11px] font-bold uppercase tracking-[0.4em] mt-1">
+                Curating excellence for the boutique
               </p>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Form */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl shadow-lg border border-amber-200 p-6">
-              <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          {/* Main Form Area */}
+          <div className="lg:col-span-8">
+            <div className="bg-white rounded-[40px] shadow-2xl shadow-[#4a2c2a]/10 border border-amber-900/5 overflow-hidden">
+              <div className="h-2 bg-gradient-to-r from-[#4a2c2a] via-amber-700 to-[#4a2c2a]"></div>
+              
+              <form onSubmit={handleSubmit} className="p-10 space-y-10">
                 {/* Product Name */}
-                <div>
-                  <label className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                    <Package className="w-4 h-4 mr-2 text-amber-600" />
-                    Product Name *
+                <div className="relative">
+                  <label className="text-[10px] font-black text-[#4a2c2a] uppercase tracking-widest mb-2 block opacity-60">
+                    Product Nomenclature
                   </label>
-                  <input
-                    type="text"
-                    name="name"
-                    placeholder="Enter product name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border-2 border-amber-200 rounded-xl focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-colors"
-                    required
-                  />
-                </div>
-
-                {/* Price & Stock */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                      <DollarSign className="w-4 h-4 mr-2 text-amber-600" />
-                      Price (₹) *
-                    </label>
+                  <div className="flex items-center border-b-2 border-amber-900/10 focus-within:border-[#4a2c2a] transition-colors pb-2">
+                    <Package className="text-amber-700 mr-4" size={20} />
                     <input
-                      type="number"
-                      name="price"
-                      placeholder="0.00"
-                      value={formData.price}
+                      type="text"
+                      name="name"
+                      placeholder="e.g. Himalayan Salted Dark Truffle"
+                      value={formData.name}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border-2 border-amber-200 rounded-xl focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-colors"
+                      className="w-full bg-transparent text-xl font-medium text-[#4a2c2a] outline-none placeholder:text-amber-900/20"
                       required
-                      min="0"
-                      step="0.01"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                      <Box className="w-4 h-4 mr-2 text-amber-600" />
-                      Stock Quantity *
-                    </label>
-                    <input
-                      type="number"
-                      name="stock"
-                      placeholder="0"
-                      value={formData.stock}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border-2 border-amber-200 rounded-xl focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-colors"
-                      required
-                      min="0"
                     />
                   </div>
                 </div>
 
-                {/* Category */}
-                <div>
-                  <label className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                    <Tag className="w-4 h-4 mr-2 text-amber-600" />
-                    Category *
-                  </label>
-                  <select
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border-2 border-amber-200 rounded-xl focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-colors"
-                    required
-                  >
-                    <option value="">Select a category</option>
-                    {categories.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                  <div className="relative">
+                    <label className="text-[10px] font-black text-[#4a2c2a] uppercase tracking-widest mb-2 block opacity-60">
+                      Market Valuation (₹)
+                    </label>
+                    <div className="flex items-center border-b-2 border-amber-900/10 focus-within:border-[#4a2c2a] transition-colors pb-2">
+                      <DollarSign className="text-amber-700 mr-4" size={20} />
+                      <input
+                        type="number"
+                        name="price"
+                        placeholder="0.00"
+                        value={formData.price}
+                        onChange={handleChange}
+                        className="w-full bg-transparent text-lg font-medium text-[#4a2c2a] outline-none"
+                        required
+                        min="0"
+                        step="0.01"
+                      />
+                    </div>
+                  </div>
+                  <div className="relative">
+                    <label className="text-[10px] font-black text-[#4a2c2a] uppercase tracking-widest mb-2 block opacity-60">
+                      Reserve Inventory
+                    </label>
+                    <div className="flex items-center border-b-2 border-amber-900/10 focus-within:border-[#4a2c2a] transition-colors pb-2">
+                      <Box className="text-amber-700 mr-4" size={20} />
+                      <input
+                        type="number"
+                        name="stock"
+                        placeholder="Quantity"
+                        value={formData.stock}
+                        onChange={handleChange}
+                        className="w-full bg-transparent text-lg font-medium text-[#4a2c2a] outline-none"
+                        required
+                        min="0"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Category & Premium Toggle */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-[#4a2c2a] uppercase tracking-widest block opacity-60">
+                      Collection
+                    </label>
+                    <select
+                      name="category"
+                      value={formData.category}
+                      onChange={handleChange}
+                      className="w-full bg-[#fffcf8] px-5 py-4 rounded-2xl border border-amber-900/10 text-[#4a2c2a] font-bold outline-none focus:ring-2 focus:ring-[#4a2c2a]/5 appearance-none"
+                      required
+                    >
+                      <option value="">Select Category</option>
+                      {categories.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="bg-[#fffcf8] p-5 rounded-2xl border border-amber-900/5 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-[#4a2c2a] rounded-lg text-amber-200">
+                        <Star size={16} fill="currentColor" />
+                      </div>
+                      <span className="text-[11px] font-black text-[#4a2c2a] uppercase tracking-wider">Premium Selection</span>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        name="premium"
+                        checked={formData.premium}
+                        onChange={handleChange}
+                        className="sr-only peer"
+                      />
+                      <div className="w-12 h-6 bg-amber-900/10 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#4a2c2a]"></div>
+                    </label>
+                  </div>
                 </div>
 
                 {/* Image URL */}
-                <div>
-                  <label className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                    <Image className="w-4 h-4 mr-2 text-amber-600" />
-                    Image URL *
+                <div className="relative">
+                  <label className="text-[10px] font-black text-[#4a2c2a] uppercase tracking-widest mb-2 block opacity-60">
+                    Visual Asset Link
                   </label>
-                  <input
-                    type="url"
-                    name="image"
-                    placeholder="https://example.com/image.jpg"
-                    value={formData.image}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border-2 border-amber-200 rounded-xl focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-colors"
-                    required
-                  />
-                </div>
-
-                {/* Premium Product Toggle */}
-                <div className="flex items-center justify-between p-4 bg-amber-50 rounded-xl border border-amber-200">
-                  <div>
-                    <label className="flex items-center space-x-2 text-sm font-medium text-gray-900">
-                      <Star className="w-4 h-4 text-amber-600" />
-                      <span>Premium Product</span>
-                    </label>
-                    <p className="text-sm text-amber-700 mt-1">
-                      Mark this product as premium for special highlighting
-                    </p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
+                  <div className="flex items-center border-b-2 border-amber-900/10 focus-within:border-[#4a2c2a] transition-colors pb-2">
+                    <ImageIcon className="text-amber-700 mr-4" size={20} />
                     <input
-                      type="checkbox"
-                      name="premium"
-                      checked={formData.premium}
+                      type="url"
+                      name="image"
+                      placeholder="https://images.boutique.com/product.jpg"
+                      value={formData.image}
                       onChange={handleChange}
-                      className="sr-only peer"
+                      className="w-full bg-transparent text-lg font-medium text-[#4a2c2a] outline-none"
+                      required
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-amber-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
-                  </label>
+                  </div>
                 </div>
 
                 {/* Description */}
-                <div>
-                  <label className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                    <FileText className="w-4 h-4 mr-2 text-amber-600" />
-                    Description *
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-[#4a2c2a] uppercase tracking-widest block opacity-60">
+                    Artisanal Description
                   </label>
                   <textarea
                     name="description"
-                    placeholder="Enter product description..."
+                    placeholder="Describe the tasting notes, origin, and craftsmanship..."
                     value={formData.description}
                     onChange={handleChange}
                     rows={4}
-                    className="w-full px-4 py-3 border-2 border-amber-200 rounded-xl focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-colors resize-none"
+                    className="w-full bg-[#fffcf8] p-6 rounded-[24px] border border-amber-900/10 text-[#4a2c2a] outline-none focus:ring-2 focus:ring-[#4a2c2a]/5 resize-none italic"
                     required
                   />
                 </div>
 
-                {/* Submit Button */}
+                {/* Submit */}
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white py-4 px-6 rounded-xl font-bold hover:from-amber-600 hover:to-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
+                  className="w-full bg-[#4a2c2a] text-[#fffcf8] py-6 rounded-[24px] font-black uppercase text-xs tracking-[0.3em] shadow-2xl shadow-amber-900/20 hover:scale-[1.01] active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-70"
                 >
                   {loading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      <span>Adding Product...</span>
-                    </>
+                    <Zap className="animate-pulse" size={18} />
                   ) : (
-                    <>
-                      <Check className="w-5 h-5" />
-                      <span>Add Product</span>
-                    </>
+                    <Sparkles size={18} />
                   )}
+                  {loading ? "Authenticating Creation..." : "Finalize Product"}
                 </button>
               </form>
             </div>
           </div>
 
-          {/* Preview Sidebar */}
-          <div className="space-y-6">
-            {/* Image Preview */}
-            <div className="bg-white rounded-2xl shadow-lg border border-amber-200 p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">
-                Image Preview
-              </h3>
-              {imagePreview ? (
-                <div className="aspect-square bg-gray-100 rounded-xl overflow-hidden">
+          {/* Preview & Curation Sidebar */}
+          <div className="lg:col-span-4 space-y-8">
+            <div className="bg-white p-8 rounded-[40px] shadow-xl shadow-amber-900/5 border border-amber-900/5">
+              <h3 className="text-[10px] font-black text-[#4a2c2a] uppercase tracking-[0.2em] mb-6">Visual Preview</h3>
+              <div className="aspect-square bg-[#fffcf8] rounded-[32px] overflow-hidden border border-amber-900/5 flex items-center justify-center relative group">
+                {imagePreview ? (
                   <img
                     src={imagePreview}
-                    alt="Product preview"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.target.src =
-                        "https://via.placeholder.com/400x400?text=Invalid+Image+URL";
-                    }}
+                    alt="Product"
+                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                    onError={(e) => { e.target.src = "https://placehold.co/600x600/4a2c2a/fffcf8?text=Waiting+for+Visual"; }}
                   />
-                </div>
-              ) : (
-                <div className="aspect-square bg-amber-50 rounded-xl border-2 border-dashed border-amber-200 flex items-center justify-center">
-                  <div className="text-center text-amber-600">
-                    <Image className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Image preview will appear here</p>
+                ) : (
+                  <div className="text-center p-6">
+                    <ImageIcon className="w-12 h-12 mx-auto mb-4 text-amber-900/10" strokeWidth={1} />
+                    <p className="text-[9px] font-bold uppercase text-amber-900/30 tracking-widest leading-relaxed">
+                      Your artisanal visual will appear here
+                    </p>
                   </div>
-                </div>
-              )}
-            </div>
-
-            {/* Product Summary */}
-            <div className="bg-white rounded-2xl shadow-lg border border-amber-200 p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">
-                Product Summary
-              </h3>
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Name:</span>
-                  <span className="font-medium text-gray-900">
-                    {formData.name || "Not set"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Price:</span>
-                  <span className="font-medium text-gray-900">
-                    {formData.price ? `₹${formData.price}` : "Not set"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Category:</span>
-                  <span className="font-medium text-gray-900">
-                    {formData.category || "Not set"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Stock:</span>
-                  <span className="font-medium text-gray-900">
-                    {formData.stock || "0"} units
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Premium:</span>
-                  <span
-                    className={`font-medium ${
-                      formData.premium ? "text-amber-600" : "text-gray-600"
-                    }`}
-                  >
-                    {formData.premium ? "Yes" : "No"}
-                  </span>
-                </div>
+                )}
+                {formData.premium && (
+                    <div className="absolute top-5 left-5 bg-[#4a2c2a] text-amber-200 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest shadow-lg">
+                        Premium
+                    </div>
+                )}
               </div>
             </div>
 
-            {/* Quick Tips */}
-            <div className="bg-amber-50 rounded-2xl border border-amber-200 p-6">
-              <h3 className="font-semibold text-amber-900 mb-3 flex items-center">
-                <Check className="w-4 h-4 mr-2" />
-                Quick Tips
+            {/* Curation Guide */}
+            <div className="bg-[#4a2c2a] p-8 rounded-[40px] text-[#fffcf8] relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] mb-6 text-amber-200/40 flex items-center gap-2">
+                <Check size={14} /> Curation Guide
               </h3>
-              <ul className="text-sm text-amber-700 space-y-2">
-                <li>• Use high-quality product images</li>
-                <li>• Write clear, descriptive product names</li>
-                <li>• Set appropriate pricing and stock levels</li>
-                <li>• Choose the correct category for better organization</li>
-                <li>• Mark premium products for special highlighting</li>
+              <ul className="space-y-4">
+                {[
+                  "High-resolution lifestyle photography",
+                  "Evocative and sensory nomenclature",
+                  "Accurate stock for exclusivity",
+                  "Detailed aromatic descriptions"
+                ].map((tip, i) => (
+                  <li key={i} className="flex gap-3 text-[11px] leading-relaxed font-medium text-amber-50/70">
+                    <span className="text-amber-200/30 font-black italic">0{i+1}</span>
+                    {tip}
+                  </li>
+                ))}
               </ul>
+              <div className="mt-8 pt-8 border-t border-white/5 text-center">
+                <p className="text-[9px] font-black uppercase tracking-widest text-white/20 italic">
+                  Artisanal Standard v2.0
+                </p>
+              </div>
             </div>
           </div>
         </div>

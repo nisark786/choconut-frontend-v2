@@ -6,13 +6,17 @@ import api from "../../../api/axios";
 import {
   ArrowLeft,
   Mail,
-  Phone,
   Calendar,
   ShoppingBag,
   CheckCircle,
   XCircle,
   User,
   Shield,
+  ShieldAlert,
+  ShieldCheck,
+  TrendingUp,
+  CreditCard,
+  Package,
 } from "lucide-react";
 
 export default function UserDetails() {
@@ -38,7 +42,6 @@ export default function UserDetails() {
         setLoading(false);
       }
     };
-
     fetchUser();
   }, [id]);
 
@@ -47,21 +50,10 @@ export default function UserDetails() {
     setActionLoading(true);
     try {
       await userAction(user.id, action);
-
       setUser((prev) => ({
         ...prev,
-        is_blocked:
-          action === "block"
-            ? true
-            : action === "unblock"
-              ? false
-              : prev.is_blocked,
-        is_staff:
-          action === "make_admin"
-            ? true
-            : action === "remove_admin"
-              ? false
-              : prev.is_staff,
+        is_blocked: action === "block" ? true : action === "unblock" ? false : prev.is_blocked,
+        is_staff: action === "make_admin" ? true : action === "remove_admin" ? false : prev.is_staff,
       }));
     } catch (err) {
       console.error("Action failed", err);
@@ -70,291 +62,167 @@ export default function UserDetails() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">Loading user details...</p>
+  if (loading) return (
+    <div className="min-h-screen bg-[#fffcf8] flex items-center justify-center">
+      <div className="animate-pulse flex flex-col items-center">
+        <div className="w-12 h-12 bg-[#4a2c2a]/10 rounded-full mb-4"></div>
+        <p className="text-[#4a2c2a] font-bold tracking-widest text-xs uppercase">Retrieving Dossier...</p>
       </div>
-    );
-  }
+    </div>
+  );
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-4xl mx-auto px-4">
-          <button
-            onClick={() => navigate("/admin/users")}
-            className="flex items-center space-x-2 text-amber-600 hover:text-amber-700 font-medium mb-6 group"
-          >
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-            <span>Back to Users</span>
-          </button>
-          <div className="bg-white rounded-2xl shadow-lg border border-amber-200 p-8 text-center">
-            <User className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              User Not Found
-            </h2>
-            <p className="text-gray-600">
-              The user you're looking for doesn't exist.
-            </p>
-          </div>
+  if (!user) return (
+    <div className="min-h-screen bg-[#fffcf8] py-12 px-6">
+      <div className="max-w-2xl mx-auto text-center">
+        <button onClick={() => navigate("/admin/users")} className="flex items-center gap-2 text-[#4a2c2a] font-bold mb-8 opacity-50 hover:opacity-100 transition-all uppercase text-[10px] tracking-[0.3em]">
+          <ArrowLeft size={14} /> Back to Registry
+        </button>
+        <div className="bg-white p-12 rounded-[40px] shadow-xl shadow-[#4a2c2a]/5 border border-amber-900/5">
+          <User className="w-16 h-16 text-amber-900/10 mx-auto mb-6" />
+          <h2 className="text-2xl font-black text-[#4a2c2a] uppercase">Patron Not Found</h2>
+          <p className="text-amber-900/40 text-sm mt-2">This profile does not exist in our current registry.</p>
         </div>
       </div>
-    );
-  }
-
-  const getStatusColor = (isBlocked) =>
-    isBlocked ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800";
-  const getStatusText = (isBlocked) => (isBlocked ? "Blocked" : "Active");
-
-  const userStats = stats;
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => navigate("/admin/users")}
-              className="flex items-center space-x-2 text-amber-600 hover:text-amber-700 font-medium group"
-            >
-              <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-              <span>Back to Customers</span>
-            </button>
-            <div className="w-px h-6 bg-gray-300"></div>
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl flex items-center justify-center">
-                <User className="w-6 h-6 text-white" />
+    <div className="min-h-screen bg-[#fffcf8] py-12 pb-24">
+      <div className="max-w-6xl mx-auto px-6">
+        {/* Breadcrumb Navigation */}
+        <button onClick={() => navigate("/admin/users")} className="flex items-center gap-2 text-[#4a2c2a] font-black mb-8 group uppercase text-[10px] tracking-[0.3em]">
+          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform text-amber-700" />
+          Back to Customer Registry
+        </button>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Left Column: Profile Card */}
+          <div className="lg:col-span-4 space-y-6">
+            <div className="bg-white rounded-[32px] overflow-hidden shadow-2xl shadow-[#4a2c2a]/5 border border-amber-900/5">
+              <div className="bg-[#4a2c2a] p-8 text-center relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl" />
+                <div className="relative z-10">
+                  <div className="w-24 h-24 bg-[#fffcf8] rounded-[24px] mx-auto flex items-center justify-center shadow-2xl rotate-3 mb-4">
+                    <span className="text-3xl font-black text-[#4a2c2a]">
+                      {user.name?.charAt(0)?.toUpperCase()}
+                    </span>
+                  </div>
+                  <h2 className="text-xl font-black text-[#fffcf8] tracking-tight">{user.name}</h2>
+                  <p className="text-amber-200/50 text-[10px] font-bold uppercase tracking-widest mt-1 italic">{user.email}</p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  User Details
-                </h1>
-                <p className="text-amber-700">
-                  Comprehensive user information and activity
-                </p>
+
+              <div className="p-8 space-y-6">
+                <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-widest border-b border-amber-900/5 pb-4">
+                  <span className="text-amber-900/40">Account Standing</span>
+                  <span className={`flex items-center gap-1.5 ${user.is_blocked ? "text-red-600" : "text-emerald-600"}`}>
+                    {user.is_blocked ? <XCircle size={12} /> : <CheckCircle size={12} />}
+                    {user.is_blocked ? "Restricted" : "Active"}
+                  </span>
+                </div>
+
+                <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                        <Calendar size={14} className="text-amber-700" />
+                        <div>
+                            <p className="text-[9px] font-bold uppercase text-amber-900/30">Member Since</p>
+                            <p className="text-xs font-black text-[#4a2c2a]">{new Date(user.date_joined).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <Shield size={14} className="text-amber-700" />
+                        <div>
+                            <p className="text-[9px] font-bold uppercase text-amber-900/30">Security Clearance</p>
+                            <p className="text-xs font-black text-[#4a2c2a]">{user.is_staff ? "Administrator" : "Verified Patron"}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 pt-4">
+                  <button
+                    onClick={() => handleUserAction(user.is_blocked ? "unblock" : "block")}
+                    className={`flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                      user.is_blocked ? "bg-emerald-600 text-white" : "bg-red-600 text-white"
+                    }`}
+                  >
+                    {user.is_blocked ? <ShieldCheck size={14} /> : <ShieldAlert size={14} />}
+                    {user.is_blocked ? "Lift Restriction" : "Restrict Account"}
+                  </button>
+                  <button
+                    onClick={() => handleUserAction(user.is_staff ? "remove_admin" : "make_admin")}
+                    className="flex items-center justify-center gap-2 py-3 bg-[#4a2c2a] text-[#fffcf8] rounded-xl text-[10px] font-black uppercase tracking-widest"
+                  >
+                    <Shield size={14} />
+                    {user.is_staff ? "Revoke Admin" : "Promote to Admin"}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-3 space-y-6">
-            {/* Profile Card */}
-            <div className="bg-white rounded-2xl shadow-lg border border-amber-200 overflow-hidden">
-              {/* Profile Header */}
-              <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-6 text-white">
-                <div className="flex items-center space-x-4">
-                  <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                    <span className="text-2xl font-bold text-white">
-                      {user.name?.charAt(0)?.toUpperCase() || "U"}
-                    </span>
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold">{user.name}</h2>
-                    <p className="text-amber-100 opacity-90">{user.email}</p>
-                    <span
-                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-2 ${getStatusColor(user.is_blocked)}`}
-                    >
-                      {user.is_blocked ? (
-                        <XCircle className="w-4 h-4 mr-1" />
-                      ) : (
-                        <CheckCircle className="w-4 h-4 mr-1" />
-                      )}
-                      {getStatusText(user.is_blocked)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Profile Details */}
-              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-3">
-                    <Mail className="w-5 h-5 text-amber-600" />
-                    <div>
-                      <p className="text-sm text-gray-600">Email</p>
-                      <p className="font-medium text-gray-900">{user.email}</p>
+          {/* Right Column: Stats and Orders */}
+          <div className="lg:col-span-8 space-y-8">
+            {/* Quick Insights */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[
+                    { label: "Acquisition Value", val: `₹${stats?.total_spent?.toLocaleString()}`, icon: TrendingUp, color: "text-emerald-600" },
+                    { label: "Purchase Frequency", val: `${stats?.total_orders} Orders`, icon: Package, color: "text-[#4a2c2a]" },
+                    { label: "Average Ticket", val: `₹${stats?.average_order?.toLocaleString()}`, icon: CreditCard, color: "text-amber-700" },
+                ].map((item, i) => (
+                    <div key={i} className="bg-white p-6 rounded-[24px] border border-amber-900/5 shadow-sm">
+                        <item.icon size={16} className={`${item.color} mb-3 opacity-60`} />
+                        <p className="text-lg font-black text-[#4a2c2a]">{item.val}</p>
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-amber-900/30">{item.label}</p>
                     </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Shield className="w-5 h-5 text-amber-600" />
-                    <div>
-                      <p className="text-sm text-gray-600">Role</p>
-                      <p className="font-medium text-gray-900">
-                        {user.is_staff ? "Admin" : "User"}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    disabled={actionLoading}
-                    onClick={() =>
-                      handleUserAction(user.is_blocked ? "unblock" : "block")
-                    }
-                    className={`w-full flex items-center space-x-3 p-3 rounded-xl transition-colors ${
-                      user.is_blocked
-                        ? "bg-blue-500 text-white hover:bg-blue-600"
-                        : "bg-red-500 text-white hover:bg-red-600"
-                    }`}
-                  >
-                    <Shield className="w-5 h-5" />
-                    <span className="font-medium">
-                      {user.is_blocked ? "Unblock User" : "Block User"}
-                    </span>
-                  </button>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-3">
-                    <Calendar className="w-5 h-5 text-amber-600" />
-                    <div>
-                      <p className="text-sm text-gray-600">Member Since</p>
-                      <p className="font-medium text-gray-900">
-                        {user.date_joined
-                          ? new Date(user.date_joined).toLocaleDateString(
-                              "en-US",
-                              {
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
-                              },
-                            )
-                          : "N/A"}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Shield className="w-5 h-5 text-amber-600" />
-                    <div>
-                      <p className="text-sm text-gray-600">User ID</p>
-                      <p className="font-mono text-sm text-gray-900">
-                        {user.id}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    disabled={actionLoading}
-                    onClick={() =>
-                      handleUserAction(
-                        user.is_staff ? "remove_admin" : "make_admin",
-                      )
-                    }
-                    className={`w-full flex items-center space-x-3 p-3 rounded-xl transition-colors ${
-                      user.is_staff
-                        ? "bg-green-500 text-white hover:bg-green-600"
-                        : "bg-orange-500 text-white hover:bg-orange-600"
-                    }`}
-                  >
-                    <Shield className="w-5 h-5" />
-                    <span className="font-medium">
-                      {user.is_staff ? "Demote Admin" : "Promote User"}
-                    </span>
-                  </button>
-                </div>
-              </div>
+                ))}
             </div>
 
-            {/* User Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-white p-4 rounded-2xl border border-gray-200 text-center">
-                <p className="text-sm text-gray-600">Total Orders</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {userStats?.total_orders}
-                </p>
-                <div className="w-full h-2 bg-blue-500 rounded-full mt-2"></div>
-              </div>
-              <div className="bg-white p-4 rounded-2xl border border-gray-200 text-center">
-                <p className="text-sm text-gray-600">Total Spent</p>
-                <p className="text-2xl font-bold text-green-600">
-                  ₹{userStats?.total_spent?.toLocaleString()}
-                </p>
-                <div className="w-full h-2 bg-green-500 rounded-full mt-2"></div>
-              </div>
-              <div className="bg-white p-4 rounded-2xl border border-gray-200 text-center">
-                <p className="text-sm text-gray-600">Avg. Order</p>
-                <p className="text-2xl font-bold text-amber-600">
-                  ₹{userStats?.average_order?.toLocaleString()}
-                </p>
-                <div className="w-full h-2 bg-amber-500 rounded-full mt-2"></div>
-              </div>
-              <div className="bg-white p-4 rounded-2xl border border-gray-200 text-center">
-                <p className="text-sm text-gray-600">Last Order</p>
-                <p className="text-lg font-bold text-gray-900">
-                  {userStats?.last_order
-                    ? new Date(userStats.last_order).toLocaleDateString()
-                    : "No Orders"}
-                </p>
-                <div className="w-full h-2 bg-purple-500 rounded-full mt-2"></div>
-              </div>
-            </div>
-
-            {/* Orders Section */}
-            <div className="bg-white rounded-2xl shadow-lg border border-amber-200 p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-900 flex items-center">
-                  <ShoppingBag className="w-6 h-6 mr-2 text-amber-600" />
-                  Order History
+            {/* Order Ledger */}
+            <div className="bg-white rounded-[32px] shadow-xl shadow-[#4a2c2a]/5 border border-amber-900/5 p-8">
+              <div className="flex items-center justify-between mb-8">
+                <h3 className="text-sm font-black text-[#4a2c2a] uppercase tracking-[0.2em] flex items-center gap-3">
+                  <div className="w-1 h-4 bg-amber-700 rounded-full" />
+                  Transaction Ledger
                 </h3>
               </div>
 
               {orders.length > 0 ? (
                 <div className="space-y-4">
                   {orders.slice(0, 10).map((order) => (
-                    <div
-                      key={order.id}
-                      className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
-                          <ShoppingBag className="w-6 h-6 text-amber-600" />
+                    <div key={order.id} className="flex flex-col md:flex-row md:items-center justify-between p-5 bg-[#fffcf8] rounded-2xl border border-amber-900/5 group hover:border-amber-700/20 transition-all">
+                      <div className="flex items-center gap-4 mb-4 md:mb-0">
+                        <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-amber-900/5">
+                          <ShoppingBag size={16} className="text-amber-700" />
                         </div>
                         <div>
-                          <p className="font-bold text-gray-900">{order.id}</p>
-                          <p className="text-sm text-gray-600">
-                            {order.created_at
-                              ? new Date(order.created_at).toLocaleDateString()
-                              : "Date unknown"}
-                          </p>
+                          <p className="text-[10px] font-black text-[#4a2c2a] uppercase tracking-tight">Ref: {order.id.slice(-8)}</p>
+                          <p className="text-[10px] font-bold text-amber-900/30 uppercase">{new Date(order.created_at).toLocaleDateString()}</p>
                         </div>
                       </div>
-                      {order.items
-                        .map(
-                          (item) =>
-                            `${item.product_name} x ${item.quantity} unit`,
-                        )
-                        .join(", ")}
 
-                      <div className="text-right">
-                        <p className="font-bold text-gray-900">
-                          ₹{order.total_amount?.toLocaleString() || "0"}
+                      <div className="flex-1 md:px-8">
+                        <p className="text-[11px] font-bold text-[#4a2c2a]/60 line-clamp-1 italic">
+                          {order.items.map(item => `${item.product_name} (${item.quantity})`).join(", ")}
                         </p>
-                        <span
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                            order.order_status === "DELIVERED"
-                              ? "bg-green-100 text-green-800"
-                              : order.order_status === "SHIPPED"
-                                ? "bg-amber-100 text-amber-800"
-                                : order.order_status === "PROCESSING"
-                                  ? "bg-blue-100 text-blue-800"
-                                  : "bg-red-100 text-red-800"
-                          }`}
-                        >
-                          {order.order_status || "Unknown"}
-                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between md:justify-end gap-6 pt-4 md:pt-0 border-t md:border-t-0 border-amber-900/5">
+                        <div className="text-right">
+                          <p className="text-sm font-black text-[#4a2c2a]">₹{order.total_amount?.toLocaleString()}</p>
+                          <span className={`text-[8px] font-black uppercase tracking-[0.1em] ${
+                            order.order_status === "DELIVERED" ? "text-emerald-600" : "text-amber-700"
+                          }`}>
+                            {order.order_status}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12">
-                  <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-600 text-lg">
-                    No orders found for this user
-                  </p>
-                  <p className="text-gray-500 text-sm mt-1">
-                    This user hasn't placed any orders yet.
-                  </p>
+                <div className="text-center py-16">
+                  <ShoppingBag size={48} className="mx-auto text-amber-900/5 mb-4" />
+                  <p className="text-[11px] font-black text-[#4a2c2a] uppercase tracking-widest opacity-30">No transaction history found</p>
                 </div>
               )}
             </div>

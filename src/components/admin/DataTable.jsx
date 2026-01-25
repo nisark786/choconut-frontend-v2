@@ -1,30 +1,31 @@
 // src/components/admin/DataTable.jsx
-export default function DataTable({ 
-  headers, 
-  data, 
-  renderRow, 
-  emptyMessage = "No data available",
-  className = "" 
-}) {
+export default function DataTable({ headers, data, renderRow, emptyMessage }) {
   return (
-    <div className={`bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden ${className}`}>
+    <div className="bg-white rounded-[40px] shadow-2xl shadow-[#4a2c2a]/5 border border-amber-900/5 overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full table-fixed border-collapse"> {/* table-fixed is mandatory */}
           <thead>
-            <tr className="border-b border-gray-200">
+            <tr className="bg-[#fffcf8]/50">
               {headers.map((header, index) => (
-                <th key={index} className="text-left py-3 px-4 text-sm font-medium text-gray-600">
-                  {header}
+                <th 
+                  key={index} 
+                  className={`py-6 px-8 text-[10px] font-black uppercase tracking-[0.2em] text-amber-900/40 border-b border-amber-900/5 text-left ${header.className || ""}`}
+                >
+                  {header.label || header}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-amber-900/5">
             {data.length > 0 ? (
-              data.map((item, index) => renderRow(item, index))
+              data.map((item, index) => (
+                <tr key={item.id || index} className="hover:bg-[#fffcf8] transition-colors group">
+                  {renderRow(item, index)}
+                </tr>
+              ))
             ) : (
               <tr>
-                <td colSpan={headers.length} className="py-8 text-center text-gray-500">
+                <td colSpan={headers.length} className="py-20 text-center text-[10px] font-bold uppercase tracking-widest text-amber-900/20">
                   {emptyMessage}
                 </td>
               </tr>

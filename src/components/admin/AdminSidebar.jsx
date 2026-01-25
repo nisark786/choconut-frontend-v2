@@ -1,19 +1,26 @@
-import { useNavigate ,useLocation } from "react-router-dom";
+// src/components/admin/AdminSidebar.jsx
+import { useNavigate } from "react-router-dom";
 import {
   BarChart3,
   Package,
   ShoppingCart,
   LogOut,
-  Shield,
   X,
-  UsersIcon
+  UsersIcon,
+  Gem,
+  ArrowUpRight,
+  Bell,
+  MessageSquare
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 const menuItems = [
-   { id: "dashboard", name: "Overview", icon: BarChart3, path: "/admin/dashboard" },
-  { id: "products", name: "Products", icon: Package, path: "/admin/products" },
-  { id: "orders", name: "Orders", icon: ShoppingCart, path: "/admin/orders" },
-  { id: "users", name: "Users", icon: UsersIcon, path: "/admin/users" }
+  { id: "dashboard", name: "Atelier Overview", icon: BarChart3, path: "/admin/dashboard" },
+  { id: "products", name: "Inventory Curation", icon: Package, path: "/admin/products" },
+  { id: "orders", name: "Order Ledger", icon: ShoppingCart, path: "/admin/orders" },
+  { id: "users", name: "Patron Directory", icon: UsersIcon, path: "/admin/users" },
+  { id: "messages", name: "Communication", icon: MessageSquare, path: "/admin/messages" },
+  { id: "notifications", name: "Notifications", icon: Bell, path: "/admin/notifications" }
 ];
 
 export default function AdminSidebar({ 
@@ -23,64 +30,78 @@ export default function AdminSidebar({
   onSidebarToggle,
   onNavigateToStore 
 }) {
-    const navigate = useNavigate();
-    const location = useLocation();
+  const navigate = useNavigate();
 
-    const handleNavigation = (item)=>{
-      onTabChange(item.id);
-      navigate(item.path);
-      onSidebarToggle(false); //for mobile side bar cloding
-    }
-
+  const handleNavigation = (item) => {
+    onTabChange(item.id);
+    navigate(item.path);
+    onSidebarToggle(false); // Close mobile sidebar
+  };
 
   return (
-    <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-amber-900 to-orange-900 transform ${
+    <div className={`fixed inset-y-0 left-0 z-[60] w-72 bg-[#4a2c2a] transform ${
       sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-    } lg:translate-x-0 transition-transform duration-300 ease-in-out`}>
+    } lg:translate-x-0 transition-transform duration-500 ease-[0.19, 1, 0.22, 1] shadow-2xl`}>
       
-      {/* Header */}
-      <div className="flex items-center justify-between h-16 px-4 bg-amber-800">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-            <Shield className="w-5 h-5 text-amber-600" />
+      {/* Branding Header */}
+      <div className="flex items-center justify-between h-24 px-8 border-b border-white/5">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-[#fffcf8] rounded-[12px] flex items-center justify-center shadow-inner">
+            <Gem className="w-5 h-5 text-[#4a2c2a]" />
           </div>
-          <span className="text-white font-bold text-xl">Admin</span>
+          <div className="flex flex-col">
+            <span className="text-[#fffcf8] font-black text-lg tracking-tighter uppercase leading-none">Atelier</span>
+            <span className="text-[8px] font-black tracking-[0.4em] text-white/20 uppercase mt-1">Command</span>
+          </div>
         </div>
         
         <button 
           onClick={() => onSidebarToggle(false)}
-          className="lg:hidden p-1 text-amber-200 hover:text-white"
+          className="lg:hidden p-2 text-white/30 hover:text-white transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
       </div>
 
-      {/* Navigation */}
-      <nav className="mt-8 px-4 space-y-2">
-        {menuItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => { handleNavigation(item) }}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-              activeTab === item.id
-                ? "bg-amber-700 text-white shadow-lg"
-                : "text-amber-100 hover:bg-amber-800 hover:text-white"
-            }`}
-          >
-            <item.icon className="w-5 h-5" />
-            <span className="font-medium">{item.name}</span>
-          </button>
-        ))}
+      {/* Navigation Body */}
+      <nav className="mt-10 px-6 space-y-3">
+        <p className="px-4 text-[9px] font-black uppercase tracking-[0.3em] text-white/20 mb-4">Main Navigation</p>
+        {menuItems.map((item) => {
+          const isActive = activeTab === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => handleNavigation(item)}
+              className={`w-full group flex items-center justify-between px-5 py-4 rounded-2xl transition-all duration-300 relative ${
+                isActive
+                  ? "bg-[#fffcf8] text-[#4a2c2a] shadow-xl shadow-black/20"
+                  : "text-white/40 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <div className="flex items-center space-x-4">
+                <item.icon className={`w-4 h-4 transition-transform group-hover:scale-110 ${isActive ? 'stroke-[2.5px]' : ''}`} />
+                <span className="text-[11px] font-black uppercase tracking-widest">{item.name}</span>
+              </div>
+              {isActive && (
+                <motion.div layoutId="activeDot" className="w-1.5 h-1.5 rounded-full bg-[#4a2c2a]" />
+              )}
+            </button>
+          );
+        })}
       </nav>
 
-      {/* Footer */}
-      <div className="absolute bottom-4 left-4 right-4">
+      {/* Footer Branding/Exit */}
+      <div className="absolute bottom-8 left-6 right-6 space-y-3">
+        
         <button
           onClick={onNavigateToStore}
-          className="w-full flex items-center space-x-3 px-4 py-3 text-amber-100 hover:bg-amber-800 rounded-xl transition-colors"
+          className="w-full flex items-center justify-between px-6 py-4 text-white/40 hover:text-[#fffcf8] hover:bg-white/5 rounded-2xl transition-all group"
         >
-          <LogOut className="w-5 h-5" />
-          <span className="font-medium">Back to Store</span>
+          <div className="flex items-center space-x-4">
+            <LogOut className="w-4 h-4 rotate-180" />
+            <span className="text-[10px] font-black uppercase tracking-widest">Public Store</span>
+          </div>
+          <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-all -translate-y-1" />
         </button>
       </div>
     </div>

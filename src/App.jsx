@@ -10,6 +10,8 @@ import AdminRoutes from "./components/routes/AdminRoutes";
 import AdminLayout from "./components/admin/AdminLayout";
 import UserLayout from "./components/routes/UserLayout";
 import PageLoader from "./components/ui/PageLoader"; // Create a sleek progress bar
+import NotificationPage from "./Pages/NotificationPage";
+import ChatSidebar from "./components/ChatBoat";
 
 // Lazy Load Pages (Optimization: Code Splitting)
 const Home = lazy(() => import("./Pages/Home"));
@@ -38,13 +40,16 @@ const UsersManagement = lazy(() => import("./components/admin/sections/UsersMana
 const AddProduct = lazy(() => import("./components/admin/pages/AddProduct"));
 const EditProduct = lazy(() => import("./components/admin/pages/EditProduct"));
 const UserDetails = lazy(() => import("./components/admin/pages/UserDetails"));
+const AdminNotificationManager = lazy(() => import("./components/admin/pages/AdminNotificationManagerPage"));
+const AdminNotificationPage = lazy(() => import("./components/admin/pages/AdminNotificationPage"));
 
 function App() {
   return (
-    <Router>
+    <>
       <ScrollToTop />
       {/* Suspense handles the loading state for lazy components */}
       <Suspense fallback={<PageLoader />}>
+      <ChatSidebar />
         <Routes>
           
           {/* 1. ADMIN ROUTES GROUP */}
@@ -58,6 +63,8 @@ function App() {
               <Route path="orders" element={<OrdersManagement />} />
               <Route path="users" element={<UsersManagement />} />
               <Route path="users/:id" element={<UserDetails />} />
+              <Route path="messages" element={<AdminNotificationManager />} />
+              <Route path="notifications" element={<AdminNotificationPage />} />
             </Route>
           </Route>
 
@@ -83,6 +90,7 @@ function App() {
               <Route path="/change-password" element={<ChangePassword />} />
               <Route path="/product/:id/review" element={<AddFeedback />} />
               <Route path="/confirmation/:orderId" element={<OrderConfirmation />} />
+              <Route path="/notifications" element={<NotificationPage />} />
             </Route>
 
             {/* 404 Route */}
@@ -98,7 +106,7 @@ function App() {
         theme="colored" // Modern 2026 look
         hideProgressBar
       />
-    </Router>
+    </>
   );
 }
 

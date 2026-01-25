@@ -21,50 +21,43 @@ export default function Address() {
     city: "",
     state: "",
     pincode: "",
-    is_default: false,
   });
 
   useEffect(() => {
     fetchAddresses();
-    if (!orderId) {
-      toast.error("Session expired. Please review your cart.");
-      navigate("/cart");
-    }
-  }, [orderId, navigate]);
+  }, []);
 
   const fetchAddresses = async () => {
     try {
       const res = await api.get("/orders/address/");
       setAddresses(res.data);
-      // Automatically select default address if available
-      const defaultAddr = res.data.find(a => a.is_default);
-      if (defaultAddr) setSelected(defaultAddr);
     } catch (err) {
       console.error("Error fetching addresses", err);
     }
   };
 
   const handleSave = async () => {
-    try {
-      if (selected?.id) {
-        await api.post(`/orders/${orderId}/address/`, { address_id: selected.id });
-        toast.success("Delivery destination confirmed");
-        navigate("/payment", { state: { orderId, addressId: selected.id } });
-        return;
-      }
+  // PRIORITY 1: If the "Add New" form is visible
+  if (isAddingNew || addresses.length === 0) {
+    const { full_name, phone, address_line, city, state, pincode } = form;
 
-      if (!form.full_name || !form.phone || !form.address_line) {
-        toast.error("Please provide complete delivery details");
-        return;
-      }
-
-      await api.post(`/orders/${orderId}/address/`, form);
-      toast.success("New address added to your profile");
-      navigate("/payment", { state: { orderId } });
-    } catch (err) {
-      toast.error("Security check: Could not save address");
+    // Validate that all fields are filled
+    if (!full_name || !phone || !address_line || !city || !state || !pincode) {
+      return toast.error("Please fill in all the details for your new address");
     }
-  };
+
+    // Success: Navigate with new address
+    return navigate("/payment", { state: { new_address: form } });
+  }
+
+  // PRIORITY 2: If the user has picked an existing card
+  if (selected) {
+    return navigate("/payment", { state: { address_id: selected.id } });
+  }
+
+  // FALLBACK: Nothing picked and form not open
+  toast.error("Please select a delivery destination");
+};
 
   return (
     <div className="min-h-screen bg-[#fffcf8] py-12 px-4 sm:px-6">

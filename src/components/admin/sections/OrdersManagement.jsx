@@ -1,8 +1,9 @@
 // src/components/admin/sections/OrdersManagement.jsx
 import { useContext, useState, useEffect } from "react";
-import { Search, Download, Edit, Truck, Package } from "lucide-react";
+import { Search, Edit, Check, X, ChevronLeft, ChevronRight, Hash, CreditCard } from "lucide-react";
 import DataTable from "../DataTable";
 import { AdminContext } from "../../../context/AdminContext";
+import { motion } from "framer-motion";
 
 export default function OrdersManagement() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -20,244 +21,198 @@ export default function OrdersManagement() {
     orderPagination,
   } = useContext(AdminContext);
 
-  const getStatusColor = (status) => {
-    const colors = {
-      DELIVERED: "bg-green-100 text-green-800",
-      CANCELLED: "bg-red-100 text-red-800",
-      SHIPPED: "bg-amber-100 text-amber-800",
-      PROCESSING: "bg-gray-100 text-gray-800",
+  // Status Style Palette
+  const getStatusStyles = (status) => {
+    const styles = {
+      DELIVERED: "bg-emerald-50 text-emerald-700 border-emerald-100",
+      CANCELLED: "bg-red-50 text-red-700 border-red-100",
+      SHIPPED: "bg-amber-50 text-amber-700 border-amber-100",
+      PROCESSING: "bg-[#4a2c2a]/5 text-[#4a2c2a] border-amber-900/10",
+      PAID: "bg-emerald-50 text-emerald-600 border-emerald-100",
+      PENDING: "bg-orange-50 text-orange-600 border-orange-100",
     };
-    return colors[status] || "bg-gray-100 text-gray-800";
-  };
-
-  const handleEditClick = (order) => {
-    setEditingOrderId(order.id);
-    setUpdatedStatus(order.order_status);
+    return styles[status] || "bg-gray-50 text-gray-600 border-gray-100";
   };
 
   const stats = [
-    {
-      label: "Cancelled",
-      value: orderStats.CANCELLED || 0,
-      color: "bg-red-500",
-    },
-    {
-      label: "Processing",
-      value: orderStats.PROCESSING || 0,
-      color: "bg-blue-500",
-    },
-    {
-      label: "Shipped",
-      value: orderStats.SHIPPED || 0,
-      color: "bg-amber-500",
-    },
-    {
-      label: "Delivered",
-      value: orderStats.DELIVERED || 0,
-      color: "bg-green-500",
-    },
+    { label: "Pending", value: orderStats.PROCESSING || 0, color: "bg-[#bc8a5f]" },
+    { label: "Transit", value: orderStats.SHIPPED || 0, color: "bg-[#8b5e34]" },
+    { label: "Completed", value: orderStats.DELIVERED || 0, color: "bg-[#4a2c2a]" },
+    { label: "Voided", value: orderStats.CANCELLED || 0, color: "bg-red-200" },
   ];
 
   useEffect(() => {
     const delay = setTimeout(() => {
-      fetchOrders({
-        page: 1,
-        search: searchTerm,
-        status: statusFilter,
-      });
+      fetchOrders({ page: 1, search: searchTerm, status: statusFilter });
     }, 400);
-
     return () => clearTimeout(delay);
   }, [searchTerm, statusFilter]);
 
+  // DEFINE FIXED COLUMN WIDTHS (Updated to accommodate Payment Status)
+  const tableHeaders = [
+    { label: "Reference", className: "w-[10%]" },
+    { label: "Patron", className: "w-[18%]" },
+    { label: "Amount", className: "w-[12%]" },
+    { label: "Payment", className: "w-[12%]" }, // New Column
+    { label: "Fulfillment", className: "w-[15%]" },
+    { label: "Curation", className: "w-[12%]" },
+    { label: "Date", className: "w-[12%]" },
+    { label: "Actions", className: "w-[9%] text-right" },
+  ];
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-10 pb-12">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Order Management</h2>
-          <p className="text-gray-600 mt-1">Manage and track customer orders</p>
-        </div>
+      <div className="flex flex-col">
+        <h1 className="text-3xl font-black text-[#4a2c2a] uppercase tracking-tighter">Fulfillment Ledger</h1>
+        <p className="text-amber-900/40 text-[11px] font-bold uppercase tracking-[0.4em] mt-1">Manage Curated Shipments</p>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
-          <div
-            key={index}
-            className="bg-white p-4 rounded-2xl border border-gray-200"
-          >
-            <p className="text-sm text-gray-600">{stat.label}</p>
-            <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-            <div className={`w-full h-2 ${stat.color} rounded-full mt-2`}></div>
+          <div key={index} className="bg-white p-6 rounded-[32px] border border-amber-900/5 shadow-xl shadow-[#4a2c2a]/5">
+            <p className="text-[10px] font-black uppercase tracking-widest text-amber-900/40 mb-1">{stat.label}</p>
+            <p className="text-2xl font-black text-[#4a2c2a]">{stat.value}</p>
+            <div className="w-full h-1.5 bg-[#fffcf8] rounded-full mt-4 overflow-hidden">
+              <motion.div 
+                initial={{ width: 0 }} 
+                animate={{ width: '100%' }} 
+                className={`h-full ${stat.color}`} 
+              />
+            </div>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content */}
-        <div className="lg:col-span-3 space-y-6">
-          {/* Filters */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
-            <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
-              <div className="relative flex-1">
-                <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Search orders..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors w-full"
-                />
-              </div>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors"
-              >
-                <option value="all">All Status</option>
-                <option value="CANCELLED">Cancelled</option>
-                <option value="PROCESSING">Processing</option>
-                <option value="SHIPPED">Shipped</option>
-                <option value="DELIVERED">Delivered</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Orders Table */}
-          <DataTable
-            headers={[
-              "Order ID",
-              "Customer",
-              "Amount",
-              "Items",
-              "Status",
-              "Date",
-              "Actions",
-            ]}
-            data={orders}
-            emptyMessage="No orders found"
-            renderRow={(order) => (
-              <tr
-                key={order.id}
-                className="border-b border-gray-100 hover:bg-gray-50"
-              >
-                <td className="py-3 px-4 font-medium text-gray-900">
-                  {order.id}
-                </td>
-                <td className="py-3 px-4">
-                  <p className="font-medium text-gray-900">{order.user_name}</p>
-                </td>
-                <td className="py-3 px-4 font-medium text-gray-900">
-                  {order.total_amount?.toLocaleString()}
-                </td>
-                <td className="py-3 px-4">
-                  <p className="font-medium text-gray-900">
-                    {order.items.length}
-                  </p>
-                  <p className="text-sm text-gray-500">items</p>
-                </td>
-                <td className="py-3 px-4">
-                  {editingOrderId === order.id ? (
-                    <select
-                      value={updatedStatus}
-                      onChange={(e) => setUpdatedStatus(e.target.value)}
-                      className="border border-gray-300 rounded-lg px-2 py-1 text-sm"
-                    >
-                      <option value="PROCESSING">Processing</option>
-                      <option value="SHIPPED">Shipped</option>
-                      <option value="DELIVERED">Delivered</option>
-                      <option value="CANCELLED">Cancelled</option>
-                    </select>
-                  ) : (
-                    <span
-                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                        order.order_status,
-                      )}`}
-                    >
-                      {order.order_status}
-                    </span>
-                  )}
-                </td>
-                <td className="py-3 px-4 text-gray-600">
-                  {order.created_at.slice(0, 10)}
-                </td>
-                <td className="py-3 px-4">
-                  <div className="flex items-center space-x-2">
-                    {editingOrderId === order.id ? (
-                      <>
-                        <button
-                          onClick={() =>
-                            handleSaveStatus({
-                              orderId: order.id,
-                              page: orderPagination.page,
-                              search: searchTerm,
-                              status: statusFilter,
-                            })
-                          }
-                          className="p-1 text-green-600 hover:text-green-700"
-                          title="Save"
-                        >
-                          Save
-                        </button>
-                        <button
-                          onClick={() => setEditingOrderId(null)}
-                          className="p-1 text-red-600 hover:text-red-700"
-                          title="Cancel"
-                        >
-                          Cancel
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          onClick={() => handleEditClick(order)}
-                          className="p-1 text-amber-600 hover:text-amber-700 transition-colors"
-                          title="Edit"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            )}
+      {/* Control Bar */}
+      <div className="bg-white rounded-[24px] p-4 border border-amber-900/5 shadow-sm flex flex-col md:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="w-4 h-4 text-amber-900/20 absolute left-4 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="Locate by Patron or Order ID..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 bg-[#fffcf8] border-none rounded-xl text-sm font-bold text-[#4a2c2a] placeholder:text-amber-900/20 focus:ring-2 focus:ring-[#4a2c2a]/5 transition-all"
           />
-          <div className="flex justify-between items-center mt-4">
-            <button
-              disabled={!orderPagination.previous}
-              onClick={() =>
-                fetchOrders({
-                  page: orderPagination.page - 1,
-                  search: searchTerm,
-                  status: statusFilter,
-                })
-              }
-              className="px-4 py-2 bg-gray-100 rounded disabled:opacity-50"
-            >
-              Previous
-            </button>
-
-            <span className="text-sm text-gray-600">
-              Page {orderPagination.page}
-            </span>
-
-            <button
-              disabled={!orderPagination.next}
-              onClick={() =>
-                fetchOrders({
-                  page: orderPagination.page + 1,
-                  search: searchTerm,
-                  status: statusFilter,
-                })
-              }
-              className="px-4 py-2 bg-gray-100 rounded disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
         </div>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-6 py-3 bg-[#fffcf8] border-none rounded-xl text-[11px] font-black uppercase tracking-widest text-[#4a2c2a] cursor-pointer"
+        >
+          <option value="all">All Statuses</option>
+          <option value="PROCESSING">Processing</option>
+          <option value="SHIPPED">Shipped</option>
+          <option value="DELIVERED">Delivered</option>
+          <option value="CANCELLED">Voided</option>
+        </select>
+      </div>
+
+      {/* Orders Table */}
+      <DataTable
+        headers={tableHeaders}
+        data={orders}
+        renderRow={(order) => (
+          <>
+            {/* Reference - 10% */}
+            <td className="py-6 px-6 w-[10%]">
+              <div className="flex items-center gap-2">
+                <Hash className="w-3 h-3 text-amber-900/20" />
+                <span className="text-sm font-black text-[#4a2c2a] tracking-tighter">{order.id}</span>
+              </div>
+            </td>
+
+            {/* Patron - 18% */}
+            <td className="py-6 px-6 w-[18%]">
+              <p className="text-[13px] font-black text-[#4a2c2a] truncate">{order.user_name}</p>
+              <p className="text-[9px] text-amber-900/40 uppercase font-bold tracking-widest">Verified Patron</p>
+            </td>
+
+            {/* Total - 12% */}
+            <td className="py-6 px-6 w-[12%] font-black text-[#4a2c2a]">
+              ${Number(order.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            </td>
+
+            {/* Payment Status - 12% */}
+            <td className="py-6 px-6 w-[12%]">
+              <div className="flex items-center gap-1.5">
+                <div className={`w-1.5 h-1.5 rounded-full ${order.payment_status === 'PAID' ? 'bg-emerald-500' : 'bg-orange-400'}`} />
+                <span className={`text-[10px] font-black uppercase tracking-widest ${order.payment_status === 'PAID' ? 'text-emerald-700' : 'text-orange-700'}`}>
+                  {order.payment_status}
+                </span>
+              </div>
+            </td>
+
+            {/* Order Status - 15% */}
+            <td className="py-6 px-6 w-[15%]">
+              {editingOrderId === order.id ? (
+                <select
+                  value={updatedStatus}
+                  onChange={(e) => setUpdatedStatus(e.target.value)}
+                  className="bg-white border border-amber-900/10 rounded-lg px-2 py-1 text-[10px] font-black uppercase tracking-widest text-[#4a2c2a] w-full"
+                >
+                  <option value="PROCESSING">Processing</option>
+                  <option value="SHIPPED">Shipped</option>
+                  <option value="DELIVERED">Delivered</option>
+                  <option value="CANCELLED">Voided</option>
+                </select>
+              ) : (
+                <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${getStatusStyles(order.order_status)}`}>
+                  {order.order_status}
+                </span>
+              )}
+            </td>
+
+            {/* Curation - 12% */}
+            <td className="py-6 px-6 w-[12%]">
+              <span className="text-[10px] font-bold text-[#4a2c2a]/60 uppercase tracking-tight italic">
+                {order.items?.length || 0} Specialties
+              </span>
+            </td>
+
+            {/* Date - 12% */}
+            <td className="py-6 px-6 w-[12%] text-[10px] font-bold text-amber-900/40 uppercase tracking-widest">
+              {new Date(order.created_at).toLocaleDateString()}
+            </td>
+
+            {/* Actions - 9% */}
+            <td className="py-6 px-6 w-[9%] text-right">
+              {editingOrderId === order.id ? (
+                <div className="flex items-center justify-end gap-1">
+                  <button onClick={() => handleSaveStatus({ orderId: order.id, page: orderPagination.page, search: searchTerm, status: statusFilter })} className="p-2 bg-[#4a2c2a] text-[#fffcf8] rounded-lg hover:bg-black transition-colors"><Check size={14} /></button>
+                  <button onClick={() => setEditingOrderId(null)} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"><X size={14} /></button>
+                </div>
+              ) : (
+                <button onClick={() => {setEditingOrderId(order.id); setUpdatedStatus(order.order_status);}} className="p-2 text-amber-900/20 hover:text-[#4a2c2a] hover:bg-[#fffcf8] rounded-xl transition-all">
+                  <Edit size={16} />
+                </button>
+              )}
+            </td>
+          </>
+        )}
+      />
+
+      {/* Pagination (Same as before) */}
+      <div className="flex justify-center items-center gap-4 pt-6">
+        <button 
+            disabled={!orderPagination.previous}
+            onClick={() => fetchOrders({ page: orderPagination.page - 1, search: searchTerm, status: statusFilter })}
+            className="p-3 bg-white border border-amber-900/5 rounded-2xl disabled:opacity-30 text-[#4a2c2a] hover:bg-[#4a2c2a] hover:text-[#fffcf8] transition-all shadow-sm"
+        >
+          <ChevronLeft size={20} />
+        </button>
+        <div className="bg-[#4a2c2a] px-6 py-2 rounded-2xl shadow-lg shadow-[#4a2c2a]/20">
+            <span className="text-[11px] font-black text-[#fffcf8] uppercase tracking-widest">Page {orderPagination.page}</span>
+        </div>
+        <button 
+            disabled={!orderPagination.next}
+            onClick={() => fetchOrders({ page: orderPagination.page + 1, search: searchTerm, status: statusFilter })}
+            className="p-3 bg-white border border-amber-900/5 rounded-2xl disabled:opacity-30 text-[#4a2c2a] hover:bg-[#4a2c2a] hover:text-[#fffcf8] transition-all shadow-sm"
+        >
+          <ChevronRight size={20} />
+        </button>
       </div>
     </div>
   );

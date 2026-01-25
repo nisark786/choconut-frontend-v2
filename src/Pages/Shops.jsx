@@ -17,6 +17,13 @@ const Shops = () => {
   const [premiumFilter, setPremiumFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("");
 
+
+
+  useEffect(() => {
+  setCurrentPage(1);
+}, [search, categoryFilter, premiumFilter, sortOrder]);
+
+
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
@@ -85,6 +92,19 @@ const Shops = () => {
                 </button>
               ))}
             </div>
+            <div className="bg-white/50 backdrop-blur-md p-1.5 rounded-full border border-amber-900/5 shadow-sm flex">
+    <button
+      onClick={() => setPremiumFilter(prev => prev === "premium" ? "all" : "premium")}
+      className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${
+        premiumFilter === "premium" 
+        ? "bg-amber-600 text-white shadow-md" 
+        : "text-amber-900/40 hover:text-amber-600"
+      }`}
+    >
+      <Sparkles size={12} />
+      {premiumFilter === "premium" ? "Show All" : "Show Premium"}
+    </button>
+  </div>
 
             {/* Sort Dropdown Refined */}
             <div className="relative group">

@@ -63,12 +63,7 @@ const Cart = () => {
   };
 
   const handleCheckout = async () => {
-    try {
-      const res = await api.post("/orders/checkout/");
-      navigate("/shipment", { state: { orderId: res.data.id } });
-    } catch (err) {
-      toast.error("Checkout failed. Please try again.");
-    }
+      navigate("/shipment");
   };
 
   const subtotal = cart?.total_price || 0;

@@ -1,4 +1,4 @@
-// src/pages/EditProduct.jsx
+// src/pages/admin/EditProduct.jsx
 import { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AdminContext } from "../../../context/AdminContext";
@@ -10,15 +10,16 @@ import {
   Tag, 
   Box, 
   FileText,
-  Image,
+  Image as ImageIcon,
   Star,
-  Upload,
-  Eye
+  Eye,
+  RefreshCw,
+  Layers
 } from "lucide-react";
 import { toast } from "react-toastify";
 
 function EditProduct() {
-  const { updateProduct,getProductById} = useContext(AdminContext);
+  const { updateProduct, getProductById } = useContext(AdminContext);
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -33,30 +34,30 @@ function EditProduct() {
   });
   const [imagePreview, setImagePreview] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [initialData, setInitialData] = useState(null);
 
   useEffect(() => {
-  const loadProduct = async () => {
-    try {
-      const product = await getProductById(id);
-
-      setFormData({
-        name: product.name || "",
-        price: product.price || "",
-        image: product.image || "",
-        category: product.category_name || "",
-        premium: product.premium || false,
-        stock: product.stock || "",
-        description: product.description || "",
-      });
-
-      setImagePreview(product.image || "");
-    } catch (err) {
-      console.error("Failed to load product", err);
-    }
-  };
-
-  loadProduct();
-}, [id]);
+    const loadProduct = async () => {
+      try {
+        const product = await getProductById(id);
+        const data = {
+          name: product.name || "",
+          price: product.price || "",
+          image: product.image || "",
+          category: product.category_name || "",
+          premium: product.premium || false,
+          stock: product.stock || "",
+          description: product.description || "",
+        };
+        setFormData(data);
+        setInitialData(data);
+        setImagePreview(product.image || "");
+      } catch (err) {
+        toast.error("Failed to load artisanal product data");
+      }
+    };
+    loadProduct();
+  }, [id, getProductById]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -65,341 +66,251 @@ function EditProduct() {
       [name]: type === "checkbox" ? checked : value,
     }));
 
-    // Update image preview
-    if (name === "image") {
-      setImagePreview(value);
-    }
+    if (name === "image") setImagePreview(value);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-
     try {
       await updateProduct(id, {
         ...formData,
         price: Number(formData.price),
         stock: Number(formData.stock),
       });
-
-      toast.success("Product updated successfully!");
+      toast.success("Product collection updated.");
       navigate("/admin/products");
     } catch (error) {
-      toast.error("Error updating product");
+      toast.error("Error refining product details");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const categories = [
-    "Chocolates",
-    "Nuts",
-  ];
+  const categories = ["Chocolates", "Nuts", "Truffles", "Gift Sets"];
 
-  
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex items-center mb-8">
-          <button
-            onClick={() => navigate("/admin/products")}
-            className="flex items-center space-x-2 text-amber-600 hover:text-amber-700 font-medium mr-4 group"
-          >
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-            <span>Back to Products</span>
-          </button>
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl flex items-center justify-center">
-              <Package className="w-6 h-6 text-white" />
-            </div>
+    <div className="min-h-screen bg-[#fffcf8] py-12">
+      <div className="max-w-6xl mx-auto px-6">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-4">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate("/admin/products")}
+              className="p-3 bg-white rounded-full shadow-sm hover:shadow-md transition-all text-[#4a2c2a] border border-amber-900/5"
+            >
+              <ArrowLeft size={20} />
+            </button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Edit Product</h1>
-              <p className="text-amber-700">Update product details and information</p>
+              <h1 className="text-3xl font-black text-[#4a2c2a] tracking-tight uppercase italic">Edit Product</h1>
+              <p className="text-amber-900/40 text-[10px] font-bold uppercase tracking-[0.3em]">Refining your artisanal inventory</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <div className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest ${formData.stock > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
+              {formData.stock > 0 ? 'In Stock' : 'Out of Stock'}
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Form */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl shadow-lg border border-amber-200 p-6">
-              <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Main Content: Form */}
+          <div className="lg:col-span-8">
+            <div className="bg-white rounded-[40px] shadow-2xl shadow-[#4a2c2a]/5 border border-amber-900/5 overflow-hidden">
+              <div className="bg-[#4a2c2a] p-4 text-center">
+                <span className="text-[10px] font-bold text-amber-200/50 uppercase tracking-[0.4em]">Product Details Dossier</span>
+              </div>
+              
+              <form onSubmit={handleSubmit} className="p-10 space-y-8">
                 {/* Product Name */}
-                <div>
-                  <label className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                    <Package className="w-4 h-4 mr-2 text-amber-600" />
-                    Product Name *
+                <div className="space-y-2">
+                  <label className="text-[11px] font-black text-[#4a2c2a] uppercase tracking-widest flex items-center gap-2">
+                    <Tag size={14} className="text-amber-700" /> Nomenclature
                   </label>
                   <input
                     type="text"
                     name="name"
-                    placeholder="Enter product name"
                     value={formData.name}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border-2 border-amber-200 rounded-xl focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-colors"
+                    className="w-full bg-[#fffcf8] px-5 py-4 border-b-2 border-transparent focus:border-amber-700 outline-none transition-all text-[#4a2c2a] font-medium rounded-2xl"
+                    placeholder="e.g., Venezuelan Dark 70%"
                     required
                   />
                 </div>
 
-                {/* Price & Stock */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                      <DollarSign className="w-4 h-4 mr-2 text-amber-600" />
-                      Price (₹) *
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-black text-[#4a2c2a] uppercase tracking-widest flex items-center gap-2">
+                      <DollarSign size={14} className="text-amber-700" /> Valuation (₹)
                     </label>
                     <input
                       type="number"
                       name="price"
-                      placeholder="0.00"
                       value={formData.price}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border-2 border-amber-200 rounded-xl focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-colors"
+                      className="w-full bg-[#fffcf8] px-5 py-4 border-b-2 border-transparent focus:border-amber-700 outline-none transition-all text-[#4a2c2a] font-medium rounded-2xl"
                       required
-                      min="0"
-                      step="0.01"
                     />
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                      <Box className="w-4 h-4 mr-2 text-amber-600" />
-                      Stock Quantity *
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-black text-[#4a2c2a] uppercase tracking-widest flex items-center gap-2">
+                      <Box size={14} className="text-amber-700" /> Inventory Count
                     </label>
                     <input
                       type="number"
                       name="stock"
-                      placeholder="0"
                       value={formData.stock}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border-2 border-amber-200 rounded-xl focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-colors"
+                      className="w-full bg-[#fffcf8] px-5 py-4 border-b-2 border-transparent focus:border-amber-700 outline-none transition-all text-[#4a2c2a] font-medium rounded-2xl"
                       required
-                      min="0"
                     />
                   </div>
                 </div>
 
-                {/* Category */}
-                <div>
-                  <label className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                    <Tag className="w-4 h-4 mr-2 text-amber-600" />
-                    Category *
-                  </label>
-                  <select
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border-2 border-amber-200 rounded-xl focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-colors"
-                    required
-                  >
-                    <option value="">Select a category</option>
-                    {categories.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-black text-[#4a2c2a] uppercase tracking-widest flex items-center gap-2">
+                      <Layers size={14} className="text-amber-700" /> Category
+                    </label>
+                    <select
+                      name="category"
+                      value={formData.category}
+                      onChange={handleChange}
+                      className="w-full bg-[#fffcf8] px-5 py-4 border-b-2 border-transparent focus:border-amber-700 outline-none transition-all text-[#4a2c2a] font-medium rounded-2xl appearance-none"
+                      required
+                    >
+                      {categories.map((cat) => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-black text-[#4a2c2a] uppercase tracking-widest flex items-center gap-2">
+                      <Star size={14} className="text-amber-700" /> Premium Status
+                    </label>
+                    <div className="flex items-center h-full">
+                        <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="premium" checked={formData.premium} onChange={handleChange} className="sr-only peer" />
+                            <div className="w-14 h-7 bg-amber-900/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4a2c2a]"></div>
+                            <span className="ml-3 text-[10px] font-black uppercase text-amber-900/40 tracking-widest">Mark as Artisanal</span>
+                        </label>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Image URL */}
-                <div>
-                  <label className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                    <Image className="w-4 h-4 mr-2 text-amber-600" />
-                    Image URL *
+                <div className="space-y-2">
+                  <label className="text-[11px] font-black text-[#4a2c2a] uppercase tracking-widest flex items-center gap-2">
+                    <ImageIcon size={14} className="text-amber-700" /> Visual Identity (URL)
                   </label>
                   <input
                     type="url"
                     name="image"
-                    placeholder="https://example.com/image.jpg"
                     value={formData.image}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border-2 border-amber-200 rounded-xl focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-colors"
+                    className="w-full bg-[#fffcf8] px-5 py-4 border-b-2 border-transparent focus:border-amber-700 outline-none transition-all text-[#4a2c2a] font-medium rounded-2xl"
+                    placeholder="https://images.luxury.com/product.jpg"
                     required
                   />
                 </div>
 
-                {/* Premium Product Toggle */}
-                <div className="flex items-center justify-between p-4 bg-amber-50 rounded-xl border border-amber-200">
-                  <div>
-                    <label className="flex items-center space-x-2 text-sm font-medium text-gray-900">
-                      <Star className="w-4 h-4 text-amber-600" />
-                      <span>Premium Product</span>
-                    </label>
-                    <p className="text-sm text-amber-700 mt-1">
-                      Mark this product as premium for special highlighting
-                    </p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      name="premium"
-                      checked={formData.premium}
-                      onChange={handleChange}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-amber-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
-                  </label>
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                    <FileText className="w-4 h-4 mr-2 text-amber-600" />
-                    Description *
+                <div className="space-y-2">
+                  <label className="text-[11px] font-black text-[#4a2c2a] uppercase tracking-widest flex items-center gap-2">
+                    <FileText size={14} className="text-amber-700" /> Tasting Notes / Description
                   </label>
                   <textarea
                     name="description"
-                    placeholder="Enter product description..."
                     value={formData.description}
                     onChange={handleChange}
                     rows={4}
-                    className="w-full px-4 py-3 border-2 border-amber-200 rounded-xl focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-colors resize-none"
+                    className="w-full bg-[#fffcf8] px-5 py-4 border-b-2 border-transparent focus:border-amber-700 outline-none transition-all text-[#4a2c2a] font-medium rounded-2xl resize-none"
+                    placeholder="Describe the aromatic profile..."
                     required
                   />
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
-                  <button
-                    type="button"
-                    onClick={() => navigate("/admin/products")}
-                    className="flex-1 py-3 px-6 border-2 border-gray-300 text-gray-700 rounded-xl font-medium hover:border-gray-400 transition-colors"
-                  >
-                    Cancel
-                  </button>
+                <div className="flex gap-4 pt-6">
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white py-3 px-6 rounded-xl font-bold hover:from-amber-600 hover:to-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
+                    className="flex-[2] bg-[#4a2c2a] text-[#fffcf8] py-5 rounded-[20px] font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-amber-900/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                   >
-                    {submitting ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        <span>Updating...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Check className="w-5 h-5" />
-                        <span>Update Product</span>
-                      </>
-                    )}
+                    {submitting ? <RefreshCw className="animate-spin" size={16} /> : <Check size={18} />}
+                    {submitting ? "Preserving..." : "Commit Changes"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/admin/products")}
+                    className="flex-1 bg-white border border-amber-900/10 text-amber-900/40 py-5 rounded-[20px] font-black uppercase text-xs tracking-[0.2em] hover:bg-red-50 hover:text-red-600 transition-all"
+                  >
+                    Discard
                   </button>
                 </div>
               </form>
             </div>
           </div>
 
-          {/* Preview Sidebar */}
-          <div className="space-y-6">
-            {/* Image Preview */}
-            <div className="bg-white rounded-2xl shadow-lg border border-amber-200 p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Image Preview</h3>
-              {imagePreview ? (
-                <div className="aspect-square bg-gray-100 rounded-xl overflow-hidden">
+          {/* Sidebar: Visual & Summary */}
+          <div className="lg:col-span-4 space-y-6">
+            {/* Visual Preview */}
+            <div className="bg-white p-6 rounded-[32px] border border-amber-900/5 shadow-xl shadow-[#4a2c2a]/5">
+              <h3 className="text-[10px] font-black text-[#4a2c2a] uppercase tracking-[0.2em] mb-4">Visual Preview</h3>
+              <div className="aspect-square bg-[#fffcf8] rounded-[24px] overflow-hidden border border-amber-900/5 group relative">
+                {imagePreview ? (
                   <img
                     src={imagePreview}
-                    alt="Product preview"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.target.src = "https://via.placeholder.com/400x400?text=Invalid+Image+URL";
-                    }}
+                    alt="Preview"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    onError={(e) => { e.target.src = "https://placehold.co/600x600/4a2c2a/fffcf8?text=Image+Not+Found"; }}
                   />
-                </div>
-              ) : (
-                <div className="aspect-square bg-amber-50 rounded-xl border-2 border-dashed border-amber-200 flex items-center justify-center">
-                  <div className="text-center text-amber-600">
-                    <Image className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">No image available</p>
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-amber-900/10">
+                    <ImageIcon size={48} strokeWidth={1} />
+                    <p className="text-[10px] mt-2 font-bold uppercase tracking-widest">Waiting for assets</p>
                   </div>
-                </div>
-              )}
-            </div>
-
-            {/* Product Summary */}
-            <div className="bg-white rounded-2xl shadow-lg border border-amber-200 p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Product Summary</h3>
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Name:</span>
-                  <span className="font-medium text-gray-900 truncate ml-2 max-w-[120px]">
-                    {formData.name || "Not set"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Price:</span>
-                  <span className="font-medium text-gray-900">
-                    {formData.price ? `₹${formData.price}` : "Not set"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Category:</span>
-                  <span className="font-medium text-gray-900 truncate ml-2 max-w-[120px]">
-                    {formData.category || "Not set"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Stock:</span>
-                  <span className="font-medium text-gray-900">{formData.stock || "0"} units</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Premium:</span>
-                  <span className={`font-medium ${formData.premium ? "text-amber-600" : "text-gray-600"}`}>
-                    {formData.premium ? "Yes" : "No"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Status:</span>
-                  <span className={`font-medium ${
-                    formData.stock > 0 ? "text-green-600" : "text-red-600"
-                  }`}>
-                    {formData.stock > 0 ? "In Stock" : "Out of Stock"}
-                  </span>
-                </div>
+                )}
+                {formData.premium && (
+                  <div className="absolute top-4 right-4 bg-[#4a2c2a] text-amber-200 p-2 rounded-full shadow-lg">
+                    <Star size={14} fill="currentColor" />
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Quick Actions */}
-            <div className="bg-amber-50 rounded-2xl border border-amber-200 p-6">
-              <h3 className="font-semibold text-amber-900 mb-3 flex items-center">
-                <Eye className="w-4 h-4 mr-2" />
-                Quick Actions
-              </h3>
-              <div className="space-y-2">
-                <button
-                  onClick={() => navigate(`/product/${id}`)}
-                  className="w-full text-left p-2 text-sm text-amber-700 hover:bg-amber-100 rounded-lg transition-colors"
-                >
-                  View on Store
-                </button>
-                <button
-                  onClick={() => window.open(`/product/${id}`, '_blank')}
-                  className="w-full text-left p-2 text-sm text-amber-700 hover:bg-amber-100 rounded-lg transition-colors"
-                >
-                  Open in New Tab
-                </button>
-                <button
-                  onClick={() => {
-                    if (confirm("Are you sure you want to reset all changes?")) {
-                      const productToEdit = products.find((p) => p.id === id);
-                      if (productToEdit) {
-                        setFormData({
-                          name: productToEdit.name || "",
-                          price: productToEdit.price || "",
-                          image: productToEdit.image || "",
-                          category: productToEdit.category || "",
-                          premium: productToEdit.premium || false,
-                          stock: productToEdit.stock || "",
-                          description: productToEdit.description || ""
-                        });
-                        setImagePreview(productToEdit.image || "");
-                      }
-                    }
-                  }}
-                  className="w-full text-left p-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                >
-                  Reset Changes
-                </button>
-              </div>
+            {/* Quick Summary */}
+            <div className="bg-[#4a2c2a] p-8 rounded-[32px] text-[#fffcf8] relative overflow-hidden">
+                <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-white/5 rounded-full blur-3xl"></div>
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] mb-6 text-amber-200/50">Summary</h3>
+                <div className="space-y-4">
+                    <div className="flex justify-between items-end border-b border-white/10 pb-2">
+                        <span className="text-[9px] font-bold uppercase text-white/40 tracking-tighter">Valuation</span>
+                        <span className="font-black text-lg">₹{Number(formData.price).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-end border-b border-white/10 pb-2">
+                        <span className="text-[9px] font-bold uppercase text-white/40 tracking-tighter">Availability</span>
+                        <span className="font-black text-lg">{formData.stock} Units</span>
+                    </div>
+                </div>
+                
+                <div className="mt-8 space-y-3">
+                    <button onClick={() => window.open(`/product/${id}`, '_blank')} className="w-full flex items-center justify-between p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-all group">
+                        <span className="text-[10px] font-black uppercase tracking-widest">Preview Store</span>
+                        <Eye size={14} className="group-hover:translate-x-1 transition-transform" />
+                    </button>
+                    <button 
+                        onClick={() => {
+                            if(confirm("Revert all refinements to the original state?")) {
+                                setFormData(initialData);
+                                setImagePreview(initialData.image);
+                            }
+                        }}
+                        className="w-full flex items-center justify-between p-4 bg-red-500/10 text-red-400 rounded-2xl hover:bg-red-500/20 transition-all group"
+                    >
+                        <span className="text-[10px] font-black uppercase tracking-widest">Reset Dossier</span>
+                        <RefreshCw size={14} />
+                    </button>
+                </div>
             </div>
           </div>
         </div>

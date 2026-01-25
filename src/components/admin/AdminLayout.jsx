@@ -1,8 +1,9 @@
 // src/components/admin/AdminLayout.jsx
-import { useState ,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
 import AdminHeader from "./AdminHeader";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -18,10 +19,9 @@ export default function AdminLayout() {
     else setActiveTab('dashboard');
   }, [location.pathname]);
 
-
-
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#fffcf8] selection:bg-[#4a2c2a]/10">
+      {/* Premium Sidebar Component */}
       <AdminSidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -30,25 +30,43 @@ export default function AdminLayout() {
         onNavigateToStore={() => navigate("/")}
       />
 
-      <div className="lg:ml-64">
+      {/* Main Content Area */}
+      <div className={`transition-all duration-500 lg:ml-72`}>
+        {/* The Atelier Header */}
         <AdminHeader
           sidebarOpen={sidebarOpen}
           onSidebarToggle={setSidebarOpen}
           activeTab={activeTab}
         />
 
-        <main className="p-4 sm:p-6 lg:p-8">
-          <Outlet />
+        <main className="p-4 sm:p-8 lg:p-12">
+          {/* Transition wrapper for smooth page changes */}
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.19, 1, 0.22, 1] }}
+          >
+            <Outlet />
+          </motion.div>
         </main>
       </div>
 
-      {/* Mobile sidebar */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      {/* Mobile Overlay - Cocoa-tinted glass effect */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-[#4a2c2a]/40 backdrop-blur-sm z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+      
+      {/* Fine-line decoration for a luxury feel */}
+      <div className="fixed top-0 right-0 w-[1px] h-screen bg-amber-900/5 pointer-events-none" />
     </div>
   );
 }

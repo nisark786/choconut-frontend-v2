@@ -1,294 +1,209 @@
-import { toast } from "react-toastify";
 // src/components/admin/sections/ProductsManagement.jsx
 import { useContext, useState, useEffect } from "react";
-import {
-  Plus,
-  Search,
-  Filter,
-  Download,
-  Edit,
-  Eye,
-  Trash2,
-  Package,
-} from "lucide-react";
+import { Plus, Search, Edit, Trash2, Package, Star, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import DataTable from "../DataTable";
 import { AdminContext } from "../../../context/AdminContext";
 import { useNavigate, Link } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function ProductsManagement() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const { products, deleteProduct, fetchProducts, productPagination,productStats } =
-    useContext(AdminContext);
+  const { products, deleteProduct, fetchProducts, productPagination, productStats } = useContext(AdminContext);
 
   useEffect(() => {
     let stock = "";
     let premium = "";
-
     if (selectedCategory === "out") stock = "out";
     if (selectedCategory === "low") stock = "low";
     if (selectedCategory === "premium") premium = "true";
     if (selectedCategory === "standard") premium = "false";
 
     fetchProducts({
-    page: 1,
-    search: searchTerm,
-    category:
-      ["Nuts", "Chocolates"].includes(selectedCategory)
-        ? selectedCategory
-        : "all",
-    stock,
-    premium,
-  });
+      page: 1,
+      search: searchTerm,
+      category: ["Nuts", "Chocolates"].includes(selectedCategory) ? selectedCategory : "all",
+      stock,
+      premium,
+    });
   }, [searchTerm, selectedCategory]);
 
-
-  const getProductStatus = (stock) => {
-    if (stock === 0) return "Out of Stock";
-    if (stock < 10) return "Low Stock";
-    return "Active";
-  };
-
-  const getStatusColor = (status) => {
-    const colors = {
-      Active: "bg-green-100 text-green-800",
-      "Low Stock": "bg-amber-100 text-amber-800",
-      "Out of Stock": "bg-red-100 text-red-800",
-    };
-    return colors[status] || "bg-gray-100 text-gray-800";
+  const getStatusStyles = (stock) => {
+    if (stock === 0) return "bg-red-50 text-red-700 border-red-100";
+    if (stock < 10) return "bg-amber-50 text-amber-700 border-amber-100";
+    return "bg-emerald-50 text-emerald-700 border-emerald-100";
   };
 
   const confirmToast = (message, onConfirm) => {
-    toast(
-      ({ closeToast }) => (
-        <div className="text-center">
-          <p className="font-medium text-gray-800 mb-3">{message}</p>
-          <div className="flex justify-center space-x-3">
-            <button
-              onClick={() => {
-                onConfirm();
-                closeToast();
-              }}
-              className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm"
-            >
-              Yes
-            </button>
-            <button
-              onClick={closeToast}
-              className="px-3 py-1 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 text-sm"
-            >
-              No
-            </button>
-          </div>
+    toast(({ closeToast }) => (
+      <div className="p-2">
+        <p className="font-bold text-[#4a2c2a] mb-4 text-sm uppercase tracking-tight">{message}</p>
+        <div className="flex space-x-3">
+          <button onClick={() => { onConfirm(); closeToast(); }} className="flex-1 py-2 bg-red-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest">Delete</button>
+          <button onClick={closeToast} className="flex-1 py-2 bg-[#fffcf8] text-[#4a2c2a] border border-amber-900/10 rounded-xl text-[10px] font-black uppercase tracking-widest">Cancel</button>
         </div>
-      ),
-      {
-        autoClose: false,
-        closeOnClick: false,
-        draggable: false,
-        position: "top-center",
-      },
-    );
+      </div>
+    ), { autoClose: false, closeOnClick: false, position: "top-center" });
   };
 
+  // COLUMN WIDTH CONFIGURATION
+  // These widths must sum to 100% or work within the table-fixed layout
+  const tableHeaders = [
+    { label: "Curation Item", className: "w-[20%]" },
+    { label: "Collection", className: "w-[15%]" },
+    { label: "Unit Price", className: "w-[12%]" },
+    { label: "Quantity", className: "w-[13%]" },
+    { label: "Availability", className: "w-[15%]" },
+    { label: "Tier", className: "w-[10%]" },
+    { label: "Actions", className: "w-[10%] text-right" }
+  ];
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-10 pb-12">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">
-            Product Management
-          </h2>
-          <p className="text-gray-600 mt-1">
-            Manage your product catalog and inventory
-          </p>
+          <h1 className="text-3xl font-black text-[#4a2c2a] uppercase tracking-tighter leading-none">Inventory Curation</h1>
+          <p className="text-amber-900/40 text-[11px] font-bold uppercase tracking-[0.4em] mt-2">Manage the Confectionery Catalog</p>
         </div>
         <button
           onClick={() => navigate("/admin/products/add")}
-          className="flex items-center space-x-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-xl hover:from-amber-600 hover:to-orange-600 transition-all shadow-lg mt-4 sm:mt-0"
+          className="flex items-center space-x-3 bg-[#4a2c2a] text-[#fffcf8] px-8 py-4 rounded-2xl hover:bg-black transition-all shadow-xl shadow-black/10 group"
         >
-          <Plus className="w-5 h-5" />
-          <span>Add Product</span>
+          <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
+          <span className="text-[11px] font-black uppercase tracking-[0.2em]">Add New Item</span>
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-gray-200">
-          <p className="text-sm text-gray-600">Total Products</p>
-          <p className="text-2xl font-bold text-gray-900">
-            {productStats.total}
-          </p>
-        </div>
-        <div className="bg-white p-4 rounded-2xl border border-gray-200">
-          <p className="text-sm text-gray-600">Low Stock</p>
-          <p className="text-2xl font-bold text-amber-600">{productStats.low_stock}</p>
-        </div>
-        <div className="bg-white p-4 rounded-2xl border border-gray-200">
-          <p className="text-sm text-gray-600">Out of Stock</p>
-          <p className="text-2xl font-bold text-red-600">{productStats.out_of_stock}</p>
-        </div>
-        <div className="bg-white p-4 rounded-2xl border border-gray-200">
-          <p className="text-sm text-gray-600">Categories</p>
-          <p className="text-2xl font-bold text-gray-900">{productStats.categories}</p>
-        </div>
+      {/* Stats Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {[
+          { label: "Total items", val: productStats.total, icon: Package, color: "text-[#4a2c2a]" },
+          { label: "Low Inventory", val: productStats.low_stock, icon: AlertCircle, color: "text-amber-600" },
+          { label: "Depleted", val: productStats.out_of_stock, icon: Trash2, color: "text-red-500" },
+          { label: "Collections", val: productStats.categories, icon: Star, color: "text-amber-900/40" },
+        ].map((stat, i) => (
+          <div key={i} className="bg-white p-6 rounded-[32px] border border-amber-900/5 shadow-xl shadow-[#4a2c2a]/5">
+            <div className="flex justify-between items-start mb-4">
+               <stat.icon size={16} className={stat.color} />
+               <span className="text-[9px] font-black text-amber-900/20 uppercase tracking-[0.2em]">Live Data</span>
+            </div>
+            <p className="text-2xl font-black text-[#4a2c2a]">{stat.val}</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-amber-900/40">{stat.label}</p>
+          </div>
+        ))}
       </div>
 
-      {/* Main Content */}
-      <div className="lg:col-span-3 space-y-6">
-        {/* Filters */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
-          <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
-            <div className="relative flex-1">
-              <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors w-full"
-              />
-            </div>
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors"
-            >
-              <option value="all">All Categories</option>
-              <option value="Nuts">Nuts</option>
-              <option value="Chocolates">Chocolates</option>
-              <option value="out">Out Of Stock</option>
-              <option value="low">Low Stock</option>
-              <option value="premium">Premium</option>
-              <option value="standard">Standard</option>
-            </select>
-          </div>
+      {/* Control Panel */}
+      <div className="bg-white rounded-[24px] p-4 border border-amber-900/5 shadow-sm flex flex-col md:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="w-4 h-4 text-amber-900/20 absolute left-4 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="Search our curation..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 bg-[#fffcf8] border-none rounded-xl text-sm font-bold text-[#4a2c2a] placeholder:text-amber-900/20 focus:ring-2 focus:ring-[#4a2c2a]/5"
+          />
         </div>
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="px-6 py-3 bg-[#fffcf8] border-none rounded-xl text-[11px] font-black uppercase tracking-widest text-[#4a2c2a]"
+        >
+          <option value="all">Filter: All Collections</option>
+          <option value="Nuts">Nuts</option>
+          <option value="Chocolates">Chocolates</option>
+          <option value="low">Low Stock Alert</option>
+          <option value="premium">Premium Only</option>
+        </select>
+      </div>
 
-        {/* Products Table */}
-        <DataTable
-          headers={[
-            "Product",
-            "Category",
-            "Price",
-            "Stock",
-            "Status",
-            "Type",
-            "Actions",
-          ]}
-          data={products}
-          emptyMessage="No products found"
-          renderRow={(product) => (
-            <tr
-              key={product.id}
-              className={`border-b border-gray-100 hover:bg-gray-50`}
-            >
-              <td className="py-3 px-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-                    <img src={product.image} alt="" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{product.name}</p>
-                    <p className="text-sm text-gray-500">ID : {product.id}</p>
-                  </div>
+      {/* Catalog Table */}
+      <DataTable
+        headers={tableHeaders}
+        data={products}
+        renderRow={(product) => (
+          <>
+            {/* Curation Item - 30% */}
+            <td className="py-6 px-8 w-[30%]">
+              <div className="flex items-center space-x-4">
+                <div className="w-10 h-10 flex-shrink-0 bg-[#fffcf8] rounded-xl overflow-hidden border border-amber-900/5 flex items-center justify-center">
+                  <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
                 </div>
-              </td>
-              <td className="py-3 px-4 text-gray-600">
-                {product.category_name}
-              </td>
-              <td className="py-3 px-4 font-medium text-gray-900">
-                {product.price}
-              </td>
-              <td className="py-3 px-4">
-                <p
-                  className={`font-medium ${
-                    product.stock === 0 ? "text-red-600" : "text-gray-900"
-                  }`}
-                >
-                  {product.stock}
-                </p>
-                <p className="text-sm text-gray-500">units</p>
-              </td>
-              <td className="py-3 px-4">
-                <span
-                  className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                    getProductStatus(product.stock),
-                  )}`}
-                >
-                  {getProductStatus(product.stock)}
-                </span>
-              </td>
-              <td className="py-3 px-4">
-                <p
-                  className={`font-medium ${
-                    product.premium ? "text-blue-600" : "text-gray-900"
-                  }`}
-                >
-                  {product.premium ? "Premium" : "Standard"}
-                </p>
-              </td>
-              <td className="py-3 px-4">
-                <div className="flex items-center space-x-2">
-                  <Link
-                    to={`/admin/products/${product.id}/edit`}
-                    className="p-1 text-amber-600 hover:text-amber-700 transition-colors"
-                    title="Edit"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Link>
-                  <button
-                    onClick={() =>
-                      confirmToast(
-                        "Are you sure you want to delete this product?",
-                        () => deleteProduct(product.id),
-                      )
-                    }
-                    className="p-1 text-red-600 hover:text-red-700 transition-colors"
-                    title="Delete"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                <div className="min-w-0">
+                  <p className="text-[13px] font-black text-[#4a2c2a] truncate">{product.name}</p>
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-amber-900/30">REF: {product.id}</p>
                 </div>
-              </td>
-            </tr>
-          )}
-        />
+              </div>
+            </td>
 
-        <div className="flex justify-between items-center mt-4">
-          <button
-            disabled={!productPagination.previous}
-            onClick={() =>
-              fetchProducts({
-                page: productPagination.page - 1,
-                search: searchTerm,
-                category: selectedCategory,
-              })
-            }
-            className="px-4 py-2 bg-gray-100 rounded disabled:opacity-50"
-          >
-            Previous
-          </button>
+            {/* Collection - 15% */}
+            <td className="py-6 px-8 w-[15%] text-[10px] font-bold text-[#4a2c2a]/60 uppercase tracking-widest">
+              {product.category_name}
+            </td>
 
-          <span className="text-sm text-gray-600">
-            Page {productPagination.page}
-          </span>
+            {/* Unit Price - 12% */}
+            <td className="py-6 px-8 w-[12%] font-black text-[#4a2c2a]">
+              ${Number(product.price).toFixed(2)}
+            </td>
 
-          <button
-            disabled={!productPagination.next}
-            onClick={() =>
-              fetchProducts({
-                page: productPagination.page + 1,
-                search: searchTerm,
-                category: selectedCategory,
-              })
-            }
-            className="px-4 py-2 bg-gray-100 rounded disabled:opacity-50"
-          >
-            Next
-          </button>
+            {/* Quantity - 13% */}
+            <td className="py-6 px-8 w-[13%]">
+              <p className={`text-sm font-black ${product.stock < 10 ? "text-amber-600" : "text-[#4a2c2a]"}`}>{product.stock}</p>
+              <p className="text-[8px] uppercase tracking-tighter text-amber-900/20">Units In Store</p>
+            </td>
+
+            {/* Availability - 15% */}
+            <td className="py-6 px-8 w-[15%]">
+              <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${getStatusStyles(product.stock)}`}>
+                {product.stock === 0 ? 'Out of Stock' : product.stock < 10 ? 'Low Stock' : 'Active'}
+              </span>
+            </td>
+
+            {/* Tier - 5% */}
+            <td className="py-6 px-8 w-[5%]">
+               {product.premium ? <Star size={14} className="text-amber-500 fill-amber-500" /> : <span className="text-[9px] font-black text-amber-900/10 uppercase">Std</span>}
+            </td>
+
+            {/* Actions - 10% */}
+            <td className="py-6 px-8 w-[10%] text-right">
+              <div className="flex items-center justify-end space-x-2">
+                <Link to={`/admin/products/${product.id}/edit`} className="p-2 text-amber-900/20 hover:text-[#4a2c2a] hover:bg-white rounded-xl transition-all">
+                  <Edit size={16} />
+                </Link>
+                <button 
+                  onClick={() => confirmToast("Delete this curation item?", () => deleteProduct(product.id))} 
+                  className="p-2 text-amber-900/20 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            </td>
+          </>
+        )}
+      />
+
+      {/* Navigation */}
+      <div className="flex justify-center items-center gap-4">
+        <button 
+          disabled={!productPagination.previous}
+          onClick={() => fetchProducts({ page: productPagination.page - 1, search: searchTerm, category: selectedCategory })}
+          className="p-3 bg-white border border-amber-900/5 rounded-2xl disabled:opacity-30 text-[#4a2c2a] hover:bg-[#4a2c2a] hover:text-[#fffcf8] transition-all shadow-sm"
+        >
+          <ChevronLeft size={20} />
+        </button>
+        <div className="bg-[#4a2c2a] px-6 py-2 rounded-2xl shadow-lg shadow-[#4a2c2a]/20">
+            <span className="text-[11px] font-black text-[#fffcf8] uppercase tracking-widest">Vault {productPagination.page}</span>
         </div>
+        <button 
+          disabled={!productPagination.next}
+          onClick={() => fetchProducts({ page: productPagination.page + 1, search: searchTerm, category: selectedCategory })}
+          className="p-3 bg-white border border-amber-900/5 rounded-2xl disabled:opacity-30 text-[#4a2c2a] hover:bg-[#4a2c2a] hover:text-[#fffcf8] transition-all shadow-sm"
+        >
+          <ChevronRight size={20} />
+        </button>
       </div>
     </div>
   );
