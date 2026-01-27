@@ -1,4 +1,4 @@
-// src/context/NotificationContext.jsx
+
 import {
   createContext,
   useContext,
@@ -22,22 +22,23 @@ export const NotificationProvider = ({ children }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const socketRef = useRef(null);
 
-  // Initial Fetch
-  // src/context/NotificationContext.jsx
-useEffect(() => {
-  if (!currentUser) return;
+  // Fetch initial notifications
+  useEffect(() => {
+    if (!currentUser) return;
 
-  const fetchInitial = async () => {
-    const endpoint = currentUser.is_staff ? "/notifications/admin/" : "/notifications/";
-    const res = await api.get(endpoint);
-    setNotifications(res.data.notifications);
-    setUnreadCount(res.data.unread_count);
-  };
+    const fetchInitial = async () => {
+      const endpoint = currentUser.is_staff
+        ? "/notifications/admin/"
+        : "/notifications/";
+      const res = await api.get(endpoint);
+      setNotifications(res.data.notifications);
+      setUnreadCount(res.data.unread_count);
+    };
 
-  fetchInitial();
-}, [currentUser]);
+    fetchInitial();
+  }, [currentUser]);
 
-  // WebSocket Persistence
+  // WebSocket persistence with reconnect and error handling
   useEffect(() => {
     if (!currentUser) {
       if (socketRef.current) socketRef.current.close();
@@ -45,45 +46,57 @@ useEffect(() => {
     }
 
     const token = getAccessToken();
-    const wsUrl = `ws://localhost:8000/ws/notifications/?token=${token}`;
+    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+    const wsUrl = `${protocol}://${window.location.host}/ws/notifications/?token=${token}`;
 
-    socketRef.current = new WebSocket(wsUrl);
+    let ws;
 
-    socketRef.current.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+    const connect = () => {
+      ws = new WebSocket(wsUrl);
+      socketRef.current = ws;
 
-      setNotifications((prev) => [data, ...prev]);
-      setUnreadCount((prev) => prev + 1);
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        setNotifications((prev) => [data, ...prev]);
+        setUnreadCount((prev) => prev + 1);
 
-      toast.dismiss();
+        toast.dismiss();
+        toast.info(
+          <div
+            onClick={() => navigate("/notifications")}
+            style={{ cursor: "pointer" }}
+          >
+            <strong>{data.title}</strong>
+            <div style={{ fontSize: "0.85rem" }}>{data.message}</div>
+          </div>,
+          { autoClose: 4000, closeOnClick: true }
+        );
+      };
 
-      toast.info(
-        <div
-          onClick={() => navigate("/notifications")}
-          style={{ cursor: "pointer" }}
-        >
-          <strong>{data.title}</strong>
-          <div style={{ fontSize: "0.85rem" }}>{data.message}</div>
-        </div>,
-        
-        {
-          autoClose: 4000,
-          closeOnClick: true,
-        },
-      );
+      ws.onclose = (event) => {
+        console.log("WebSocket closed. Reconnecting in 3s...", event);
+        setTimeout(connect, 3000); // reconnect after 3 seconds
+      };
+
+      ws.onerror = (err) => {
+        console.error("WebSocket error:", err);
+        ws.close(); // close socket on error to trigger reconnect
+      };
     };
+
+    connect();
 
     return () => {
-      if (socketRef.current) socketRef.current.close();
+      if (ws) ws.close();
     };
-  }, [currentUser]);
+  }, [currentUser, navigate]);
 
   const markOneAsRead = useCallback(async (id) => {
     try {
       await api.post(`/notifications/${id}/read/`);
 
       setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)),
+        prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
       );
 
       setUnreadCount((prev) => Math.max(prev - 1, 0));
