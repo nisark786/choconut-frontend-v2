@@ -1,4 +1,3 @@
-
 import {
   createContext,
   useContext,
@@ -50,8 +49,12 @@ export const NotificationProvider = ({ children }) => {
     const wsUrl = `${protocol}://${window.location.host}/ws/notifications/?token=${token}`;
 
     let ws;
+    let reconnectTimeout; // Cocoa Guard: Track the timeout
 
     const connect = () => {
+      // Don't open a new one if one is already connecting or open
+      if (ws?.readyState === WebSocket.OPEN) return;
+
       ws = new WebSocket(wsUrl);
       socketRef.current = ws;
 
@@ -69,25 +72,30 @@ export const NotificationProvider = ({ children }) => {
             <strong>{data.title}</strong>
             <div style={{ fontSize: "0.85rem" }}>{data.message}</div>
           </div>,
-          { autoClose: 4000, closeOnClick: true }
+          { autoClose: 4000 },
         );
       };
 
       ws.onclose = (event) => {
-        console.log("WebSocket closed. Reconnecting in 3s...", event);
-        setTimeout(connect, 3000); // reconnect after 3 seconds
+        console.log("WebSocket closed. Attempting reconnect...");
+        // Only reconnect if the component is still mounted
+        reconnectTimeout = setTimeout(connect, 3000);
       };
 
       ws.onerror = (err) => {
-        console.error("WebSocket error:", err);
-        ws.close(); // close socket on error to trigger reconnect
+        ws.close();
       };
     };
 
     connect();
 
+    // Cleanup: The most important part!
     return () => {
-      if (ws) ws.close();
+      clearTimeout(reconnectTimeout); // Stop any pending reconnects
+      if (ws) {
+        ws.onclose = null; // Remove handler so it doesn't trigger on manual close
+        ws.close();
+      }
     };
   }, [currentUser, navigate]);
 
@@ -96,7 +104,7 @@ export const NotificationProvider = ({ children }) => {
       await api.post(`/notifications/${id}/read/`);
 
       setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
+        prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)),
       );
 
       setUnreadCount((prev) => Math.max(prev - 1, 0));
