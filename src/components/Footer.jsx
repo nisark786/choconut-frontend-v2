@@ -34,10 +34,10 @@ const Footer = () => {
           <div>
             <h4 className="text-amber-200 font-bold uppercase tracking-widest text-xs mb-6">Explore</h4>
             <ul className="space-y-4 text-sm font-medium text-amber-50/70">
-              <li><Link to="/shops" className="hover:text-amber-200 transition-colors">Our Boutique</Link></li>
+              <li><Link to="/shops" className="hover:text-amber-200 transition-colors">Our Shop</Link></li>
               <li><Link to="/orders" className="hover:text-amber-200 transition-colors">Track Orders</Link></li>
               <li><Link to="/wishlist" className="hover:text-amber-200 transition-colors">Your Wishlist</Link></li>
-              <li><Link to="/profile" className="hover:text-amber-200 transition-colors">Account Settings</Link></li>
+              <li><Link to="/profile" className="hover:text-amber-200 transition-colors">Account Profile</Link></li>
             </ul>
           </div>
 
@@ -47,11 +47,11 @@ const Footer = () => {
             <ul className="space-y-4 text-sm text-amber-50/70">
               <li className="flex items-center space-x-3">
                 <MapPin size={16} className="text-amber-200" />
-                <span>123 Cocoa Lane, Dessert District</span>
+                <span>Neerolpalam ,Thenhippalam ,Malappurm</span>
               </li>
               <li className="flex items-center space-x-3">
                 <Phone size={16} className="text-amber-200" />
-                <span>+1 (555) CHOCO-NUT</span>
+                <span>+91 0000000000</span>
               </li>
               <li className="flex items-center space-x-3">
                 <Mail size={16} className="text-amber-200" />
@@ -80,12 +80,12 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <div className="flex items-center space-x-2 text-amber-50/40 text-[10px] font-bold uppercase tracking-widest">
-            <span>&copy; {currentYear} ChocoNut Artisans</span>
+            <span>&copy; {currentYear} ChocoNut</span>
             <span>•</span>
             <div className="flex items-center space-x-1">
               <span>Made with</span>
               <Heart size={10} className="text-rose-400 fill-rose-400" />
-              <span>for connoisseurs</span>
+              <span>for users</span>
             </div>
           </div>
           

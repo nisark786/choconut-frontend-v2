@@ -168,7 +168,7 @@ const ProductCard = ({ product }) => {
             ) : (
               <>
                 <ShoppingCart size={16} />
-                <span>{inCart ? "Remove Selection" : "Add to Boutique"}</span>
+                <span>{inCart ? "Remove" : "Add to Cart"}</span>
               </>
             )}
           </button>

@@ -62,7 +62,7 @@ const HeroBanner = () => {
               transition={{ delay: 0.5, duration: 0.8 }}
             >
               <span className="inline-block px-4 py-1.5 mb-6 rounded-full bg-amber-200/20 border border-amber-200/30 text-amber-200 text-sm font-bold tracking-[0.2em] uppercase backdrop-blur-md">
-                Est. 2026 • ChocoNut Artisans
+                Est. 2026 • ChocoNut
               </span>
               
               <h1 className="text-6xl md:text-8xl font-black text-[#fffcf8] mb-6 leading-tight">

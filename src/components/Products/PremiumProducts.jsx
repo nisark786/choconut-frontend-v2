@@ -53,7 +53,7 @@ const PremiumProducts = () => {
             </div>
             
             <span className="text-amber-800/60 font-black text-xs uppercase tracking-[0.3em] mb-3">
-              The Artisan's Choice
+              The Choice
             </span>
             
             <h2 className="text-4xl md:text-6xl font-black text-[#4a2c2a] mb-6 tracking-tight">
@@ -141,7 +141,7 @@ const PremiumProducts = () => {
                onClick={() => navigate("/shops")}
                className="text-[#4a2c2a] font-bold border-b-2 border-amber-200 hover:border-[#4a2c2a] transition-all pb-1 group"
             >
-              View Full Boutique <span className="inline-block group-hover:translate-x-1 transition-transform">→</span>
+              View Full Items <span className="inline-block group-hover:translate-x-1 transition-transform">→</span>
             </button>
           </div>
         )}
