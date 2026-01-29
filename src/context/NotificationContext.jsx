@@ -46,7 +46,8 @@ export const NotificationProvider = ({ children }) => {
 
     const token = getAccessToken();
     const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-    const wsUrl = `${protocol}://${window.location.host}/ws/notifications/?token=${token}`;
+    const backendHost = "13.60.70.161.nip.io";
+    const wsUrl = `${protocol}://${backendHost}/ws/notifications/?token=${token}`;
 
     let ws;
     let reconnectTimeout; // Cocoa Guard: Track the timeout
