@@ -62,7 +62,7 @@ const Shops = () => {
             <div className="h-[1px] w-8 bg-amber-900/20" />
           </motion.div>
           <h1 className="text-5xl md:text-6xl font-black text-[#4a2c2a] mb-6 tracking-tight">
-            Artisan <span className="italic font-serif text-amber-800">Boutique</span>
+            ChocoNut <span className="italic font-serif text-amber-800"> Shop</span>
           </h1>
           <p className="text-amber-900/60 text-lg max-w-xl mx-auto font-medium">
             Hand-selected single-origin chocolates and slow-roasted nuts, crafted for the discerning palate.

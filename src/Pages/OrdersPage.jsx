@@ -35,7 +35,6 @@ export default function OrdersPage() {
       const res = await api.get("/orders/");
       setOrders(res.data);
     } catch (err) {
-      console.error("Ledger retrieval failed", err);
     } finally {
       setLoading(false);
     }
@@ -87,7 +86,7 @@ export default function OrdersPage() {
             className="bg-[#4a2c2a] text-[#fffcf8] px-8 py-4 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] flex items-center mx-auto space-x-3"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Return to Boutique</span>
+            <span>Return to Shops</span>
           </button>
         </div>
       </div>
@@ -105,9 +104,8 @@ export default function OrdersPage() {
       {/* Header */}
       <div className="max-w-4xl mx-auto text-center mb-16">
         <div className="inline-block px-4 py-1.5 rounded-full border border-[#4a2c2a]/10 mb-6">
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#4a2c2a]">Order Ledger</span>
         </div>
-        <h1 className="text-4xl md:text-5xl font-black text-[#4a2c2a] tracking-tighter mb-4">Your Acquisitions</h1>
+        <h1 className="text-4xl md:text-5xl font-black text-[#4a2c2a] tracking-tighter mb-4">Your Orders</h1>
         <p className="text-[11px] font-bold uppercase tracking-widest text-amber-900/40 italic">
           Managing {orders.length} unique chocolate experiences
         </p>
@@ -214,7 +212,7 @@ export default function OrdersPage() {
               <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
                 <XCircle className="w-8 h-8 text-red-600" />
               </div>
-              <h3 className="text-xl font-black text-[#4a2c2a] uppercase tracking-tighter mb-3">Void Transaction?</h3>
+              <h3 className="text-xl font-black text-[#4a2c2a] uppercase tracking-tighter mb-3">Cancel Transaction?</h3>
               <p className="text-[11px] font-bold text-amber-900/50 uppercase tracking-widest leading-relaxed mb-8">
                 Are you certain you wish to remove this selection from your history?
               </p>
@@ -227,13 +225,13 @@ export default function OrdersPage() {
                   }}
                   className="w-full bg-red-600 text-white py-4 rounded-xl font-black uppercase tracking-[0.2em] text-[10px]"
                 >
-                  Yes, Void Order
+                  Done
                 </button>
                 <button
                   onClick={() => setConfirmCancelOrderId(null)}
                   className="w-full bg-[#fffcf8] text-[#4a2c2a] py-4 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] border border-amber-900/10"
                 >
-                  Keep Selection
+                  Cancel
                 </button>
               </div>
             </motion.div>
