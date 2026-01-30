@@ -11,7 +11,6 @@ export const CombinedProvider = ({ children }) => {
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
       
         <ChatProvider>
-        <ProductProvider>
         <UserProvider>
       <AdminProvider>
         <NotificationProvider>
@@ -21,7 +20,6 @@ export const CombinedProvider = ({ children }) => {
           </NotificationProvider>
       </AdminProvider>
         </UserProvider>
-        </ProductProvider>
         </ChatProvider>
     </GoogleOAuthProvider>
   );

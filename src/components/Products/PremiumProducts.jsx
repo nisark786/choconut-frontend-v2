@@ -1,25 +1,41 @@
-import { useEffect, useContext, memo } from "react";
+import { useEffect, useState, memo } from "react";
+import ProductCard from "./ProductCard"; // Assuming this is also styled with the theme
+import { Crown, Sparkles, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Crown, Sparkles, ArrowRight } from "lucide-react";
-
-// Context & Components
-import { ProductContext } from "../../context/ProductContext";
-import ProductCard from "./ProductCard";
+import { toast } from "react-toastify";
+import api from "../../api/axios";
 
 const PremiumProducts = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  
-  // Consume the new ProductContext
-  const { premiumProducts, loadingPremium, fetchPremiumProducts } = useContext(ProductContext);
 
   useEffect(() => {
-    // This call is now "smart"—it won't hit the API if data exists in Context
-    fetchPremiumProducts();
-  }, [fetchPremiumProducts]);
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get("products/premium/");
+        const productsArray = res.data.results || res.data;
+
+        // Filter for premium status
+        const premiumProducts = productsArray.filter(
+          (product) => product.premium === true
+        );
+        setProducts(premiumProducts);
+      } catch (err) {
+        toast.error("Failed to load our premium selection");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   return (
     <section className="bg-[#fffcf8] py-24 relative overflow-hidden">
+      {/* Subtle Decorative Element */}
       <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-[#f3eae0]/50 to-transparent opacity-60 pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 relative z-10">
@@ -53,9 +69,9 @@ const PremiumProducts = () => {
           </motion.div>
         </div>
 
-        {/* State Handling via Context State */}
+        {/* State Handling: Loading */}
         <AnimatePresence mode="wait">
-          {loadingPremium ? (
+          {loading ? (
             <motion.div 
               key="loading"
               initial={{ opacity: 0 }}
@@ -71,7 +87,8 @@ const PremiumProducts = () => {
                 Unveiling Luxury...
               </p>
             </motion.div>
-          ) : premiumProducts.length === 0 ? (
+          ) : products.length === 0 ? (
+            /* State Handling: Empty */
             <motion.div 
               key="empty"
               initial={{ opacity: 0, scale: 0.9 }}
@@ -96,13 +113,14 @@ const PremiumProducts = () => {
               </button>
             </motion.div>
           ) : (
+            /* State Handling: Grid */
             <motion.div 
               key="grid"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
             >
-              {premiumProducts.map((product, index) => (
+              {products.map((product, index) => (
                 <motion.div
                   key={product.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -117,11 +135,11 @@ const PremiumProducts = () => {
         </AnimatePresence>
 
         {/* Footer Link */}
-        {!loadingPremium && premiumProducts.length > 0 && (
+        {!loading && products.length > 0 && (
           <div className="mt-16 text-center">
             <button 
-                onClick={() => navigate("/shops")}
-                className="text-[#4a2c2a] font-bold border-b-2 border-amber-200 hover:border-[#4a2c2a] transition-all pb-1 group"
+               onClick={() => navigate("/shops")}
+               className="text-[#4a2c2a] font-bold border-b-2 border-amber-200 hover:border-[#4a2c2a] transition-all pb-1 group"
             >
               View Full Items <span className="inline-block group-hover:translate-x-1 transition-transform">→</span>
             </button>
