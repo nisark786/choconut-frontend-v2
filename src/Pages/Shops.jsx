@@ -1,61 +1,43 @@
 import { useEffect, useState, useContext, memo } from "react";
+import { ProductContext } from "../context/ProductContext"; // Import ProductContext
 import ProductCard from "../components/Products/ProductCard";
 import SearchBar from "../components/SearchBar";
-import { UserContext } from "../context/UserContext";
-import api from "../api/axios";
 import { ChevronLeft, ChevronRight, SlidersHorizontal, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Shops = () => {
-  const [products, setProducts] = useState([]);
+  // UI State
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(true);
-
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [premiumFilter, setPremiumFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("");
 
+  // Context Data
+  const { shopProducts, totalPages, loadingShop, fetchShopProducts } = useContext(ProductContext);
 
+  // Reset to page 1 on filter change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, categoryFilter, premiumFilter, sortOrder]);
 
   useEffect(() => {
-  setCurrentPage(1);
-}, [search, categoryFilter, premiumFilter, sortOrder]);
-
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
-      try {
-        const params = { page: currentPage };
-        if (search) params.search = search;
-        if (categoryFilter !== "all") params["category__name"] = categoryFilter;
-        if (premiumFilter !== "all") params.premium = premiumFilter === "premium";
-        if (sortOrder === "low") params.ordering = "price";
-        if (sortOrder === "high") params.ordering = "-price";
-
-        const res = await api.get("products/", { params });
-        setProducts(res.data.results);
-        setTotalPages(Math.ceil(res.data.count / 12));
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProducts();
-  }, [currentPage, search, categoryFilter, premiumFilter, sortOrder]);
+    fetchShopProducts({
+      currentPage,
+      search,
+      categoryFilter,
+      premiumFilter,
+      sortOrder
+    });
+  }, [currentPage, search, categoryFilter, premiumFilter, sortOrder, fetchShopProducts]);
 
   return (
     <section className="min-h-screen bg-[#fffcf8] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         
-        {/* Boutique Header */}
+        {/* Header Section */}
         <header className="text-center mb-16">
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex justify-center items-center space-x-2 mb-4"
-          >
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-center items-center space-x-2 mb-4">
             <div className="h-[1px] w-8 bg-amber-900/20" />
             <Sparkles size={16} className="text-amber-700" />
             <span className="text-[10px] font-black uppercase tracking-[0.4em] text-amber-900/40">The Collection</span>
@@ -65,53 +47,48 @@ const Shops = () => {
             ChocoNut <span className="italic font-serif text-amber-800"> Shop</span>
           </h1>
           <p className="text-amber-900/60 text-lg max-w-xl mx-auto font-medium">
-            Hand-selected single-origin chocolates and slow-roasted nuts, crafted for the discerning palate.
+            Hand-selected single-origin chocolates and slow-roasted nuts.
           </p>
         </header>
 
-        {/* Integrated Search & Filter Control */}
+        {/* Filters & Search */}
         <div className="mb-12 space-y-8">
           <div className="max-w-2xl mx-auto relative z-20">
             <SearchBar searchQuery={search} setSearchQuery={setSearch} />
           </div>
 
           <div className="flex flex-wrap justify-center gap-4">
-            {/* Elegant Category Toggles */}
             <div className="bg-white/50 backdrop-blur-md p-1.5 rounded-full border border-amber-900/5 shadow-sm flex space-x-1">
               {["all", "Chocolates", "Nuts"].map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setCategoryFilter(cat)}
                   className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
-                    categoryFilter === cat 
-                    ? "bg-[#4a2c2a] text-white shadow-md" 
-                    : "text-amber-900/40 hover:text-[#4a2c2a]"
+                    categoryFilter === cat ? "bg-[#4a2c2a] text-white shadow-md" : "text-amber-900/40 hover:text-[#4a2c2a]"
                   }`}
                 >
                   {cat}
                 </button>
               ))}
             </div>
-            <div className="bg-white/50 backdrop-blur-md p-1.5 rounded-full border border-amber-900/5 shadow-sm flex">
-    <button
-      onClick={() => setPremiumFilter(prev => prev === "premium" ? "all" : "premium")}
-      className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${
-        premiumFilter === "premium" 
-        ? "bg-amber-600 text-white shadow-md" 
-        : "text-amber-900/40 hover:text-amber-600"
-      }`}
-    >
-      <Sparkles size={12} />
-      {premiumFilter === "premium" ? "Show All" : "Show Premium"}
-    </button>
-  </div>
 
-            {/* Sort Dropdown Refined */}
+            <div className="bg-white/50 backdrop-blur-md p-1.5 rounded-full border border-amber-900/5 shadow-sm flex">
+              <button
+                onClick={() => setPremiumFilter(prev => prev === "premium" ? "all" : "premium")}
+                className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${
+                  premiumFilter === "premium" ? "bg-amber-600 text-white shadow-md" : "text-amber-900/40 hover:text-amber-600"
+                }`}
+              >
+                <Sparkles size={12} />
+                {premiumFilter === "premium" ? "Show All" : "Show Premium"}
+              </button>
+            </div>
+
             <div className="relative group">
               <select
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value)}
-                className="appearance-none bg-white/50 border border-amber-900/5 text-[#4a2c2a] text-[10px] font-black uppercase tracking-widest px-8 py-3.5 rounded-full focus:outline-none focus:ring-2 focus:ring-[#4a2c2a]/10 cursor-pointer shadow-sm"
+                className="appearance-none bg-white/50 border border-amber-900/5 text-[#4a2c2a] text-[10px] font-black uppercase tracking-widest px-8 py-3.5 rounded-full focus:outline-none cursor-pointer shadow-sm"
               >
                 <option value="">Sort: Recommended</option>
                 <option value="low">Price: Low to High</option>
@@ -122,26 +99,15 @@ const Shops = () => {
           </div>
         </div>
 
-        {/* Product Grid with Smooth Staggering */}
+        {/* Main Grid */}
         <AnimatePresence mode="wait">
-          {loading ? (
-            <motion.div 
-              key="loader"
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              exit={{ opacity: 0 }}
-              className="flex flex-col items-center justify-center py-40"
-            >
+          {loadingShop ? (
+            <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center justify-center py-40">
               <div className="w-10 h-10 border-4 border-amber-200 border-t-[#4a2c2a] rounded-full animate-spin" />
             </motion.div>
-          ) : products.length > 0 ? (
-            <motion.div 
-              key="grid"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-12"
-            >
-              {products.map((product) => (
+          ) : shopProducts.length > 0 ? (
+            <motion.div key="grid" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-12">
+              {shopProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </motion.div>
@@ -153,7 +119,7 @@ const Shops = () => {
           )}
         </AnimatePresence>
 
-        {/* Minimalist Pagination */}
+        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex justify-center items-center space-x-6 mt-20">
             <button
