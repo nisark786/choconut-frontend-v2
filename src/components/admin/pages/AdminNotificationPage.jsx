@@ -9,7 +9,7 @@ const AdminNotificationsPage = () => {
     <div className="max-w-4xl mx-auto space-y-8">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-black text-[#4a2c2a] uppercase tracking-tighter">Atelier Alerts</h1>
+          <h1 className="text-3xl font-black text-[#4a2c2a] uppercase tracking-tighter">Admin Alerts</h1>
           <p className="text-[10px] font-bold text-amber-900/40 uppercase tracking-[0.3em]">System & Order Updates</p>
         </div>
       </header>
@@ -18,7 +18,7 @@ const AdminNotificationsPage = () => {
         {notifications.length === 0 ? (
           <div className="bg-white border border-dashed border-amber-900/10 rounded-[32px] p-20 text-center">
             <Bell className="mx-auto text-amber-900/10 mb-4" size={48} strokeWidth={1} />
-            <p className="text-sm font-bold text-amber-900/20 uppercase tracking-widest">The atelier is quiet...</p>
+            <p className="text-sm font-bold text-amber-900/20 uppercase tracking-widest">The Admin is quiet...</p>
           </div>
         ) : (
           notifications.map((notif) => (

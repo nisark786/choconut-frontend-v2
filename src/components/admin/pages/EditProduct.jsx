@@ -103,7 +103,7 @@ function EditProduct() {
             </button>
             <div>
               <h1 className="text-3xl font-black text-[#4a2c2a] tracking-tight uppercase italic">Edit Product</h1>
-              <p className="text-amber-900/40 text-[10px] font-bold uppercase tracking-[0.3em]">Refining your artisanal inventory</p>
+              <p className="text-amber-900/40 text-[10px] font-bold uppercase tracking-[0.3em]">Refining your product inventory</p>
             </div>
           </div>
           
@@ -119,14 +119,14 @@ function EditProduct() {
           <div className="lg:col-span-8">
             <div className="bg-white rounded-[40px] shadow-2xl shadow-[#4a2c2a]/5 border border-amber-900/5 overflow-hidden">
               <div className="bg-[#4a2c2a] p-4 text-center">
-                <span className="text-[10px] font-bold text-amber-200/50 uppercase tracking-[0.4em]">Product Details Dossier</span>
+                <span className="text-[10px] font-bold text-amber-200/50 uppercase tracking-[0.4em]">Product Details</span>
               </div>
               
               <form onSubmit={handleSubmit} className="p-10 space-y-8">
                 {/* Product Name */}
                 <div className="space-y-2">
                   <label className="text-[11px] font-black text-[#4a2c2a] uppercase tracking-widest flex items-center gap-2">
-                    <Tag size={14} className="text-amber-700" /> Nomenclature
+                    <Tag size={14} className="text-amber-700" /> Name
                   </label>
                   <input
                     type="text"
@@ -307,7 +307,7 @@ function EditProduct() {
                         }}
                         className="w-full flex items-center justify-between p-4 bg-red-500/10 text-red-400 rounded-2xl hover:bg-red-500/20 transition-all group"
                     >
-                        <span className="text-[10px] font-black uppercase tracking-widest">Reset Dossier</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest">Reset Change</span>
                         <RefreshCw size={14} />
                     </button>
                 </div>

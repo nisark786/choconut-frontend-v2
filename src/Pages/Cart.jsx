@@ -84,13 +84,13 @@ const Cart = () => {
           <div className="w-24 h-24 bg-[#4a2c2a]/5 rounded-[30px] flex items-center justify-center mx-auto mb-8 rotate-12">
             <ShoppingBag className="w-10 h-10 text-[#4a2c2a]/20" />
           </div>
-          <h2 className="text-3xl font-black text-[#4a2c2a] mb-4 uppercase tracking-tighter">Your pantry is empty</h2>
+          <h2 className="text-3xl font-black text-[#4a2c2a] mb-4 uppercase tracking-tighter">Your cart is empty</h2>
           <p className="text-amber-900/50 mb-10 font-medium">Add some artisan treats to your collection to begin.</p>
           <button
             onClick={() => navigate("/shops")}
             className="w-full bg-[#4a2c2a] text-white py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-[#4a2c2a]/20 hover:bg-[#36201f] transition-all flex items-center justify-center space-x-3"
           >
-            <span>Browse Boutique</span>
+            <span>Browse Shops</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </motion.div>
@@ -180,7 +180,7 @@ const Cart = () => {
                   <span>₹{subtotal}</span>
                 </div>
                 <div className="flex justify-between text-sm font-medium">
-                  <span className="opacity-70">Boutique Shipping</span>
+                  <span className="opacity-70">cart Shipping</span>
                   <span className={shipping === 0 ? "text-amber-300" : ""}>
                     {shipping === 0 ? "Complimentary" : `₹${shipping}`}
                   </span>
@@ -213,7 +213,7 @@ const Cart = () => {
                 <Package size={20} />
               </div>
               <div>
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-[#4a2c2a]">Artisan Packaging</h4>
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-[#4a2c2a]">choconut Packaging</h4>
                 <p className="text-[10px] text-amber-900/40 font-medium leading-relaxed mt-1">
                   Every order is climate-controlled and packed in sustainable signature boxes.
                 </p>

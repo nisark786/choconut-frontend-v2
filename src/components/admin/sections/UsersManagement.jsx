@@ -39,7 +39,7 @@ export default function UsersManagement() {
   };
 
   const statConfig = [
-    { label: "Total Patrons", val: userStats.total, color: "bg-[#4a2c2a]", icon: UserCheck },
+    { label: "Total Users", val: userStats.total, color: "bg-[#4a2c2a]", icon: UserCheck },
     { label: "Verified", val: userStats.active, color: "bg-[#8b5e34]", icon: CheckCircle },
     { label: "Pending", val: userStats.notVerified, color: "bg-[#bc8a5f]", icon: Calendar },
     { label: "Blacklisted", val: userStats.blocked, color: "bg-red-400", icon: UserX },
@@ -48,7 +48,7 @@ export default function UsersManagement() {
 
   // FIXED COLUMN WIDTHS
   const tableHeaders = [
-    { label: "Patron Profile", className: "w-[25%]" },
+    { label: "User Profile", className: "w-[25%]" },
     { label: "Contact Information", className: "w-[20%]" },
     { label: "Standing", className: "w-[15%]" },
     { label: "Member Since", className: "w-[15%]" },
@@ -60,7 +60,7 @@ export default function UsersManagement() {
     <div className="space-y-10 pb-12">
       {/* Header */}
       <div className="flex flex-col">
-        <h1 className="text-3xl font-black text-[#4a2c2a] uppercase tracking-tighter">Patronage Registry</h1>
+        <h1 className="text-3xl font-black text-[#4a2c2a] uppercase tracking-tighter">Users Registry</h1>
         <p className="text-amber-900/40 text-[11px] font-bold uppercase tracking-[0.4em] mt-1">Manage Elite Customer Relations</p>
       </div>
 
@@ -98,7 +98,7 @@ export default function UsersManagement() {
           className="px-6 py-3 bg-[#fffcf8] border-none rounded-xl text-[11px] font-black uppercase tracking-widest text-[#4a2c2a] focus:ring-2 focus:ring-[#4a2c2a]/5 cursor-pointer"
         >
           <option value="all">Status: All Profiles</option>
-          <option value="active">Verified Patrons</option>
+          <option value="active">Verified Users</option>
           <option value="inactive">Pending Approval</option>
           <option value="blocked">Blacklisted</option>
         </select>

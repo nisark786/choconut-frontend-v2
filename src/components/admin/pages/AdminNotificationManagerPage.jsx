@@ -42,7 +42,7 @@ const AdminNotificationManager = () => {
           <div className="p-3 bg-[#4a2c2a] rounded-2xl text-[#fffcf8] shadow-lg shadow-[#4a2c2a]/20">
             <Send size={24} />
           </div>
-          <h2 className="text-3xl font-black text-[#4a2c2a] uppercase tracking-tighter">Patron Messaging</h2>
+          <h2 className="text-3xl font-black text-[#4a2c2a] uppercase tracking-tighter">User Messaging</h2>
         </div>
 
         <form onSubmit={handleBroadcast} className="grid grid-cols-1 lg:grid-cols-12 gap-12">
@@ -81,7 +81,7 @@ const AdminNotificationManager = () => {
                   onClick={() => setIsBroadcast(true)}
                   className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isBroadcast ? 'bg-[#4a2c2a] text-white shadow-md' : 'text-amber-900/30'}`}
                 >
-                  All Patrons
+                  All Users
                 </button>
                 <button 
                   type="button"
@@ -125,7 +125,7 @@ const AdminNotificationManager = () => {
                     <Users className="text-[#4a2c2a]/20 w-8 h-8" />
                   </div>
                   <p className="text-xs font-bold text-[#4a2c2a]">Global Dispatch Mode</p>
-                  <p className="text-[10px] text-amber-900/40 mt-1">Every active patron will receive this notification.</p>
+                  <p className="text-[10px] text-amber-900/40 mt-1">Every active user will receive this notification.</p>
                 </div>
               )}
 

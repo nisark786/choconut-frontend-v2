@@ -34,14 +34,14 @@ export default function Profile() {
             Private Access
           </h2>
           <p className="text-amber-900/60 font-medium mb-10 leading-relaxed">
-            This boutique dashboard is reserved for our registered connoisseurs.
+            This user dashboard is reserved for our registered users.
           </p>
           <button
             onClick={() => navigate("/login")}
             className="w-full bg-[#4a2c2a] text-[#fffcf8] py-4 px-8 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-[#3d2422] transition-all flex items-center justify-center space-x-3"
           >
             <LogOut className="w-4 h-4 rotate-180" />
-            <span>Sign In to Boutique</span>
+            <span>Sign In to choconut</span>
           </button>
         </motion.div>
       </div>
@@ -56,7 +56,7 @@ export default function Profile() {
         {/* Page Header */}
         <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
-            <h1 className="text-5xl font-black text-[#4a2c2a] tracking-tighter uppercase">Connoisseur</h1>
+            <h1 className="text-5xl font-black text-[#4a2c2a] tracking-tighter uppercase">Profile</h1>
             <p className="text-amber-900/50 font-bold uppercase tracking-[0.3em] text-[10px] mt-2 ml-1">Account Management</p>
           </div>
           <button
@@ -64,7 +64,7 @@ export default function Profile() {
             className="flex items-center space-x-2 text-[#4a2c2a]/40 hover:text-red-600 transition-colors font-black uppercase tracking-widest text-[10px]"
           >
             <LogOut className="w-4 h-4" />
-            <span>Terminate Session</span>
+            <span>Logout</span>
           </button>
         </div>
 
@@ -85,7 +85,7 @@ export default function Profile() {
                   <h2 className="text-3xl font-black uppercase tracking-tight">{currentUser.name}</h2>
                   <div className="flex items-center space-x-2 mt-1 opacity-60">
                     <Shield className="w-4 h-4" />
-                    <p className="text-xs font-bold uppercase tracking-widest">Elite Member • Tier 01</p>
+                    <p className="text-xs font-bold uppercase tracking-widest">Elite Member</p>
                   </div>
                 </div>
               </div>
@@ -97,7 +97,7 @@ export default function Profile() {
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40 mb-2">Registry ID</p>
-                  <p className="font-mono text-xs opacity-80">{currentUser.id}</p>
+                  <p className="font-mono text-xs opacity-80">{currentUser.userId}</p>
                 </div>
               </div>
             </div>

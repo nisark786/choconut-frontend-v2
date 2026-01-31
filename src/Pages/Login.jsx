@@ -174,7 +174,7 @@ const Login = () => {
           {/* Signup Footer */}
           <div className="mt-10 pt-8 border-t border-amber-50 text-center">
             <p className="text-amber-900/40 text-xs font-bold uppercase tracking-widest mb-4">
-              New to the boutique?
+              New to ?
             </p>
             <Link
               to="/signup"

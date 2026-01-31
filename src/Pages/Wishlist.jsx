@@ -56,7 +56,7 @@ const Wishlist = () => {
             className="w-full bg-[#4a2c2a] text-white py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-[#4a2c2a]/20 hover:bg-[#36201f] transition-all flex items-center justify-center space-x-3"
           >
             <Search className="w-4 h-4" />
-            <span>Explore Boutique</span>
+            <span>Explore Shop</span>
           </button>
         </motion.div>
       </div>

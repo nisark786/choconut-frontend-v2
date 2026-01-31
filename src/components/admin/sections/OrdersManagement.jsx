@@ -38,7 +38,7 @@ export default function OrdersManagement() {
     { label: "Pending", value: orderStats.PROCESSING || 0, color: "bg-[#bc8a5f]" },
     { label: "Transit", value: orderStats.SHIPPED || 0, color: "bg-[#8b5e34]" },
     { label: "Completed", value: orderStats.DELIVERED || 0, color: "bg-[#4a2c2a]" },
-    { label: "Voided", value: orderStats.CANCELLED || 0, color: "bg-red-200" },
+    { label: "Cancelled", value: orderStats.CANCELLED || 0, color: "bg-red-200" },
   ];
 
   useEffect(() => {
@@ -51,11 +51,11 @@ export default function OrdersManagement() {
   // DEFINE FIXED COLUMN WIDTHS (Updated to accommodate Payment Status)
   const tableHeaders = [
     { label: "Reference", className: "w-[10%]" },
-    { label: "Patron", className: "w-[18%]" },
+    { label: "User", className: "w-[18%]" },
     { label: "Amount", className: "w-[12%]" },
     { label: "Payment", className: "w-[12%]" }, // New Column
-    { label: "Fulfillment", className: "w-[15%]" },
-    { label: "Curation", className: "w-[12%]" },
+    { label: "Status", className: "w-[15%]" },
+    { label: "Items", className: "w-[12%]" },
     { label: "Date", className: "w-[12%]" },
     { label: "Actions", className: "w-[9%] text-right" },
   ];
@@ -64,7 +64,7 @@ export default function OrdersManagement() {
     <div className="space-y-10 pb-12">
       {/* Header */}
       <div className="flex flex-col">
-        <h1 className="text-3xl font-black text-[#4a2c2a] uppercase tracking-tighter">Fulfillment Ledger</h1>
+        <h1 className="text-3xl font-black text-[#4a2c2a] uppercase tracking-tighter">Orders Management</h1>
         <p className="text-amber-900/40 text-[11px] font-bold uppercase tracking-[0.4em] mt-1">Manage Curated Shipments</p>
       </div>
 
@@ -168,7 +168,7 @@ export default function OrdersManagement() {
             {/* Curation - 12% */}
             <td className="py-6 px-6 w-[12%]">
               <span className="text-[10px] font-bold text-[#4a2c2a]/60 uppercase tracking-tight italic">
-                {order.items?.length || 0} Specialties
+                {order.items?.length || 0} Items
               </span>
             </td>
 

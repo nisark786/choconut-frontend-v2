@@ -66,7 +66,7 @@ export default function UserDetails() {
     <div className="min-h-screen bg-[#fffcf8] flex items-center justify-center">
       <div className="animate-pulse flex flex-col items-center">
         <div className="w-12 h-12 bg-[#4a2c2a]/10 rounded-full mb-4"></div>
-        <p className="text-[#4a2c2a] font-bold tracking-widest text-xs uppercase">Retrieving Dossier...</p>
+        <p className="text-[#4a2c2a] font-bold tracking-widest text-xs uppercase">Retrieving User...</p>
       </div>
     </div>
   );
@@ -79,7 +79,7 @@ export default function UserDetails() {
         </button>
         <div className="bg-white p-12 rounded-[40px] shadow-xl shadow-[#4a2c2a]/5 border border-amber-900/5">
           <User className="w-16 h-16 text-amber-900/10 mx-auto mb-6" />
-          <h2 className="text-2xl font-black text-[#4a2c2a] uppercase">Patron Not Found</h2>
+          <h2 className="text-2xl font-black text-[#4a2c2a] uppercase">User Not Found</h2>
           <p className="text-amber-900/40 text-sm mt-2">This profile does not exist in our current registry.</p>
         </div>
       </div>
@@ -133,7 +133,7 @@ export default function UserDetails() {
                         <Shield size={14} className="text-amber-700" />
                         <div>
                             <p className="text-[9px] font-bold uppercase text-amber-900/30">Security Clearance</p>
-                            <p className="text-xs font-black text-[#4a2c2a]">{user.is_staff ? "Administrator" : "Verified Patron"}</p>
+                            <p className="text-xs font-black text-[#4a2c2a]">{user.is_staff ? "Administrator" : "Verified User"}</p>
                         </div>
                     </div>
                 </div>
@@ -167,7 +167,7 @@ export default function UserDetails() {
                 {[
                     { label: "Acquisition Value", val: `₹${stats?.total_spent?.toLocaleString()}`, icon: TrendingUp, color: "text-emerald-600" },
                     { label: "Purchase Frequency", val: `${stats?.total_orders} Orders`, icon: Package, color: "text-[#4a2c2a]" },
-                    { label: "Average Ticket", val: `₹${stats?.average_order?.toLocaleString()}`, icon: CreditCard, color: "text-amber-700" },
+                    { label: "Average", val: `₹${stats?.average_order?.toLocaleString()}`, icon: CreditCard, color: "text-amber-700" },
                 ].map((item, i) => (
                     <div key={i} className="bg-white p-6 rounded-[24px] border border-amber-900/5 shadow-sm">
                         <item.icon size={16} className={`${item.color} mb-3 opacity-60`} />
@@ -182,7 +182,7 @@ export default function UserDetails() {
               <div className="flex items-center justify-between mb-8">
                 <h3 className="text-sm font-black text-[#4a2c2a] uppercase tracking-[0.2em] flex items-center gap-3">
                   <div className="w-1 h-4 bg-amber-700 rounded-full" />
-                  Transaction Ledger
+                  Transactions
                 </h3>
               </div>
 

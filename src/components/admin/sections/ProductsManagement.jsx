@@ -55,7 +55,7 @@ export default function ProductsManagement() {
     { label: "Unit Price", className: "w-[12%]" },
     { label: "Quantity", className: "w-[13%]" },
     { label: "Availability", className: "w-[15%]" },
-    { label: "Tier", className: "w-[10%]" },
+    { label: "Brand", className: "w-[10%]" },
     { label: "Actions", className: "w-[10%] text-right" }
   ];
 
@@ -64,8 +64,8 @@ export default function ProductsManagement() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-[#4a2c2a] uppercase tracking-tighter leading-none">Inventory Curation</h1>
-          <p className="text-amber-900/40 text-[11px] font-bold uppercase tracking-[0.4em] mt-2">Manage the Confectionery Catalog</p>
+          <h1 className="text-3xl font-black text-[#4a2c2a] uppercase tracking-tighter leading-none">Inventory</h1>
+          <p className="text-amber-900/40 text-[11px] font-bold uppercase tracking-[0.4em] mt-2">Manage the Products</p>
         </div>
         <button
           onClick={() => navigate("/admin/products/add")}
@@ -80,8 +80,8 @@ export default function ProductsManagement() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {[
           { label: "Total items", val: productStats.total, icon: Package, color: "text-[#4a2c2a]" },
-          { label: "Low Inventory", val: productStats.low_stock, icon: AlertCircle, color: "text-amber-600" },
-          { label: "Depleted", val: productStats.out_of_stock, icon: Trash2, color: "text-red-500" },
+          { label: "Low Stock", val: productStats.low_stock, icon: AlertCircle, color: "text-amber-600" },
+          { label: "Out Of Stock", val: productStats.out_of_stock, icon: Trash2, color: "text-red-500" },
           { label: "Collections", val: productStats.categories, icon: Star, color: "text-amber-900/40" },
         ].map((stat, i) => (
           <div key={i} className="bg-white p-6 rounded-[32px] border border-amber-900/5 shadow-xl shadow-[#4a2c2a]/5">
@@ -164,7 +164,7 @@ export default function ProductsManagement() {
 
             {/* Tier - 5% */}
             <td className="py-6 px-8 w-[5%]">
-               {product.premium ? <Star size={14} className="text-amber-500 fill-amber-500" /> : <span className="text-[9px] font-black text-amber-900/10 uppercase">Std</span>}
+               {product.premium ? <Star size={14} className="text-amber-500 fill-amber-500" /> && <span>Premium</span> : <span className="text-[9px] font-black text-amber-900/10 uppercase">Standard</span>}
             </td>
 
             {/* Actions - 10% */}
@@ -195,7 +195,7 @@ export default function ProductsManagement() {
           <ChevronLeft size={20} />
         </button>
         <div className="bg-[#4a2c2a] px-6 py-2 rounded-2xl shadow-lg shadow-[#4a2c2a]/20">
-            <span className="text-[11px] font-black text-[#fffcf8] uppercase tracking-widest">Vault {productPagination.page}</span>
+            <span className="text-[11px] font-black text-[#fffcf8] uppercase tracking-widest">Page {productPagination.page}</span>
         </div>
         <button 
           disabled={!productPagination.next}

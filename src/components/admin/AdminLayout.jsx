@@ -16,6 +16,8 @@ export default function AdminLayout() {
     if (path.includes('/admin/products')) setActiveTab('products');
     else if (path.includes('/admin/orders')) setActiveTab('orders');
     else if (path.includes('/admin/users')) setActiveTab('users');
+    else if (path.includes('/admin/messages')) setActiveTab('messages');
+    else if (path.includes('/admin/notifications')) setActiveTab('notifications');
     else setActiveTab('dashboard');
   }, [location.pathname]);
 

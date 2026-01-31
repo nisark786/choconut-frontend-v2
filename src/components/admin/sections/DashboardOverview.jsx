@@ -20,10 +20,10 @@ export default function DashboardOverview() {
   const { stats, monthly_revenue, order_status, top_products } = dashboard;
 
   const cards = [
-    { title: "Net Revenue", value: `$${stats.total_revenue.toLocaleString()}`, icon: DollarSign, trend: 12 },
-    { title: "Order Volume", value: stats.total_orders, icon: ShoppingCart, trend: 8 },
-    { title: "Curated Items", value: stats.total_products, icon: Package },
-    { title: "Total Patrons", value: stats.total_users, icon: Users, trend: 5 },
+    { title: "Total Revenue", value: `$${stats.total_revenue.toLocaleString()}`, icon: DollarSign, trend: 12 },
+    { title: "Orders", value: stats.total_orders, icon: ShoppingCart, trend: 8 },
+    { title: "Products", value: stats.total_products, icon: Package },
+    { title: "Users", value: stats.total_users, icon: Users, trend: 5 },
   ];
 
   return (
@@ -34,7 +34,7 @@ export default function DashboardOverview() {
           Business Intelligence
         </h1>
         <p className="text-amber-900/40 text-[11px] font-bold uppercase tracking-[0.4em] mt-1">
-          Real-time Boutique Performance
+          Real-time Choconut Performance
         </p>
       </div>
 

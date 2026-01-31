@@ -15,10 +15,10 @@ import {
 import { motion } from "framer-motion";
 
 const menuItems = [
-  { id: "dashboard", name: "Atelier Overview", icon: BarChart3, path: "/admin/dashboard" },
-  { id: "products", name: "Inventory Curation", icon: Package, path: "/admin/products" },
-  { id: "orders", name: "Order Ledger", icon: ShoppingCart, path: "/admin/orders" },
-  { id: "users", name: "Patron Directory", icon: UsersIcon, path: "/admin/users" },
+  { id: "dashboard", name: "Dashboard Overview", icon: BarChart3, path: "/admin/dashboard" },
+  { id: "products", name: "Products", icon: Package, path: "/admin/products" },
+  { id: "orders", name: "Orders", icon: ShoppingCart, path: "/admin/orders" },
+  { id: "users", name: "Users", icon: UsersIcon, path: "/admin/users" },
   { id: "messages", name: "Communication", icon: MessageSquare, path: "/admin/messages" },
   { id: "notifications", name: "Notifications", icon: Bell, path: "/admin/notifications" }
 ];
@@ -50,7 +50,7 @@ export default function AdminSidebar({
             <Gem className="w-5 h-5 text-[#4a2c2a]" />
           </div>
           <div className="flex flex-col">
-            <span className="text-[#fffcf8] font-black text-lg tracking-tighter uppercase leading-none">Atelier</span>
+            <span className="text-[#fffcf8] font-black text-lg tracking-tighter uppercase leading-none">Admin</span>
             <span className="text-[8px] font-black tracking-[0.4em] text-white/20 uppercase mt-1">Command</span>
           </div>
         </div>

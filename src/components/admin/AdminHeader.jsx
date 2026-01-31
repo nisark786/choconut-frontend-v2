@@ -14,11 +14,12 @@ export default function AdminHeader({
   const navigate = useNavigate();
 
   const sectionTitles = {
-    dashboard: "Atelier Overview",
-    products: "Inventory Curation",
-    orders: "Fulfillment Ledger",
-    users: "Patron Directory",
+    dashboard: "Dashboard Overview",
+    products: "Products Managment",
+    orders: "Orders Managment",
+    users: "Users Managment",
     notifications: "Alerts & Dispatches", // Added for the new page
+    notifications: "Messages Managment", // Added for the new page
   };
 
   const handleLogout = () => {

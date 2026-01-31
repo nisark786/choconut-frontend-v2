@@ -86,7 +86,7 @@ function AddProduct() {
                 Add New Creation
               </h1>
               <p className="text-amber-900/40 text-[11px] font-bold uppercase tracking-[0.4em] mt-1">
-                Curating excellence for the boutique
+                Curating excellence for the choconut
               </p>
             </div>
           </div>
@@ -102,7 +102,7 @@ function AddProduct() {
                 {/* Product Name */}
                 <div className="relative">
                   <label className="text-[10px] font-black text-[#4a2c2a] uppercase tracking-widest mb-2 block opacity-60">
-                    Product Nomenclature
+                    Product Name
                   </label>
                   <div className="flex items-center border-b-2 border-amber-900/10 focus-within:border-[#4a2c2a] transition-colors pb-2">
                     <Package className="text-amber-700 mr-4" size={20} />
@@ -220,7 +220,7 @@ function AddProduct() {
                 {/* Description */}
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-[#4a2c2a] uppercase tracking-widest block opacity-60">
-                    Artisanal Description
+                    Description
                   </label>
                   <textarea
                     name="description"
@@ -266,7 +266,7 @@ function AddProduct() {
                   <div className="text-center p-6">
                     <ImageIcon className="w-12 h-12 mx-auto mb-4 text-amber-900/10" strokeWidth={1} />
                     <p className="text-[9px] font-bold uppercase text-amber-900/30 tracking-widest leading-relaxed">
-                      Your artisanal visual will appear here
+                      Your product visual will appear here
                     </p>
                   </div>
                 )}
@@ -282,7 +282,7 @@ function AddProduct() {
             <div className="bg-[#4a2c2a] p-8 rounded-[40px] text-[#fffcf8] relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
               <h3 className="text-[10px] font-black uppercase tracking-[0.3em] mb-6 text-amber-200/40 flex items-center gap-2">
-                <Check size={14} /> Curation Guide
+                <Check size={14} /> Creating Guide
               </h3>
               <ul className="space-y-4">
                 {[
@@ -299,7 +299,7 @@ function AddProduct() {
               </ul>
               <div className="mt-8 pt-8 border-t border-white/5 text-center">
                 <p className="text-[9px] font-black uppercase tracking-widest text-white/20 italic">
-                  Artisanal Standard v2.0
+                 Standard v2.0
                 </p>
               </div>
             </div>
